@@ -1,4 +1,4 @@
-## C# library for UCWA 2.0
+### C# library for UCWA 2.0
 
 This is a sample library for C# developer to consume UCWA 2.0 (Unified Communication Web API) of Office 365 Skype Service.
 For more detail about the Web API, please refer to Skype Developer Site (https://ucwa.skype.com)
@@ -54,7 +54,7 @@ await client.SignIn(availability:Availability.Online, supportMessage:true, suppo
 ```
 5\. Do anything you need.
 
-### SPECIAL THANKS TO
+##### SPECIAL THANKS TO
 Tam Huynh to help me start the project. https://github.com/tamhinsf/ucwa-sfbo-console
 David Newman to help me drive the project. https://www.youtube.com/watch?time_continue=4&v=Epqrsexnn5g
 Adam Hodge and Maxwell Roseman for encourage me.

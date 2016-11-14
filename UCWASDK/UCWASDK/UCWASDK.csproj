@@ -1,0 +1,278 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{412AA98E-A874-455D-A3A9-23D7360632B4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.Skype.UCWA</RootNamespace>
+    <AssemblyName>Microsoft.Skype.UCWA.SDK</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Enums\AccessLevel.cs" />
+    <Compile Include="Enums\ActivePeriod.cs" />
+    <Compile Include="Enums\AudienceMessaging.cs" />
+    <Compile Include="Enums\AudienceMuteLock.cs" />
+    <Compile Include="Enums\AudioTranscriptStatus.cs" />
+    <Compile Include="Enums\AutomaticLeaderAssignment.cs" />
+    <Compile Include="Enums\Availability.cs" />
+    <Compile Include="Enums\CallDeclineReason.cs" />
+    <Compile Include="Enums\CallForwardingState.cs" />
+    <Compile Include="Enums\CallState.cs" />
+    <Compile Include="Enums\ConversationLogStatus.cs" />
+    <Compile Include="Enums\ConversationLogType.cs" />
+    <Compile Include="Enums\ErrorTranscriptReason.cs" />
+    <Compile Include="Enums\LobbyBypassForPhoneUsers.cs" />
+    <Compile Include="Enums\ContactDeviceType.cs" />
+    <Compile Include="Enums\ContactType.cs" />
+    <Compile Include="Enums\ConversationModalityType.cs" />
+    <Compile Include="Enums\ConversationState.cs" />
+    <Compile Include="Enums\Direction.cs" />
+    <Compile Include="Enums\EntryExitAnnouncement.cs" />
+    <Compile Include="Enums\ErrorCode.cs" />
+    <Compile Include="Enums\ErrorSubCode.cs" />
+    <Compile Include="Enums\GenericPolicy.cs" />
+    <Compile Include="Enums\ImmediateForwardSettingsTarget.cs" />
+    <Compile Include="Enums\Importance.cs" />
+    <Compile Include="Enums\InvitationState.cs" />
+    <Compile Include="Enums\LargeMeetingMode.cs" />
+    <Compile Include="Enums\MediaDirectionType.cs" />
+    <Compile Include="Enums\MessageFormat.cs" />
+    <Compile Include="Enums\ModalityType.cs" />
+    <Compile Include="Enums\NoteType.cs" />
+    <Compile Include="Enums\OnlineMeetingExtensionType.cs" />
+    <Compile Include="Enums\OnlineMeetingRel.cs" />
+    <Compile Include="Enums\PhoneUserAdmission.cs" />
+    <Compile Include="Enums\PreferredAvailability.cs" />
+    <Compile Include="Enums\PrivacyRelationshipLevel.cs" />
+    <Compile Include="Enums\Role.cs" />
+    <Compile Include="Enums\SimultaneousRingTarget.cs" />
+    <Compile Include="Enums\SourceNetwork.cs" />
+    <Compile Include="Enums\Status.cs" />
+    <Compile Include="Enums\SubscriptionState.cs" />
+    <Compile Include="Enums\UnansweredCallHandling.cs" />
+    <Compile Include="Enums\UnansweredCallHandlingTarget.cs" />
+    <Compile Include="Enums\VideoSourcesAllowed.cs" />
+    <Compile Include="Models\Demote.cs" />
+    <Compile Include="Models\CallDecline.cs" />
+    <Compile Include="Models\UCWAErrors.cs" />
+    <Compile Include="Models\Xframe.cs" />
+    <Compile Include="Models\User.cs" />
+    <Compile Include="Models\UnansweredCallToVoicemail.cs" />
+    <Compile Include="Models\UnansweredCallToContact.cs" />
+    <Compile Include="Models\SimultaneousRingToTeam.cs" />
+    <Compile Include="Models\SimultaneousRingToDelegates.cs" />
+    <Compile Include="Models\SimultaneousRingToContact.cs" />
+    <Compile Include="Models\Root.cs" />
+    <Compile Include="Models\ResetUnansweredCallSettings.cs" />
+    <Compile Include="Models\ResetContactPrivaryRelationship.cs" />
+    <Compile Include="Models\ReportMyActivity.cs" />
+    <Compile Include="Models\RemoveFromContactList.cs" />
+    <Compile Include="Models\RemoveContactFromAllGroups2.cs" />
+    <Compile Include="Models\RemoveContactFromAllGroups.cs" />
+    <Compile Include="Models\Redirect.cs" />
+    <Compile Include="Models\Reason.cs" />
+    <Compile Include="Models\Photo.cs" />
+    <Compile Include="Models\Search2.cs" />
+    <Compile Include="Models\StartMessaging2.cs" />
+    <Compile Include="Models\TurnOffCallForwarding.cs" />
+    <Compile Include="Models\StartPhoneAudio2.cs" />
+    <Compile Include="Models\StopPhoneAudio.cs" />
+    <Compile Include="Models\SubscribeToGroupPresence.cs" />
+    <Compile Include="Models\TransferredBy.cs" />
+    <Compile Include="Models\PhoneAudioInvitation.cs" />
+    <Compile Include="Models\ResumePhoneAudio.cs" />
+    <Compile Include="Models\SubscribedContacts.cs" />
+    <Compile Include="Models\PresenceSubscriptions.cs" />
+    <Compile Include="Models\ParticipantInvitation.cs" />
+    <Compile Include="Models\Organizer.cs" />
+    <Compile Include="Models\PhoneDialInInformation.cs" />
+    <Compile Include="Models\OnlineMeetingPolicies.cs" />
+    <Compile Include="Models\OnlineMeetingInvitationCustomization.cs" />
+    <Compile Include="Models\OnlineMeetingInvitation.cs" />
+    <Compile Include="Models\OnlineMeetingEligibleValues.cs" />
+    <Compile Include="Models\OnlineMeetingDefaultValues.cs" />
+    <Compile Include="Models\MyPrivacyRelationships.cs" />
+    <Compile Include="Models\MyPrivacyRelationship.cs" />
+    <Compile Include="Models\MyOnlineMeetings.cs" />
+    <Compile Include="Models\MyOnlineMeeting.cs" />
+    <Compile Include="Models\MyGroupMemberships2.cs" />
+    <Compile Include="Models\MyGroupMemberships.cs" />
+    <Compile Include="Models\MyGroupMembership2.cs" />
+    <Compile Include="Models\MyGroups2.cs" />
+    <Compile Include="Models\PinnedGroup.cs" />
+    <Compile Include="Models\StartOrRefreshSubscriptionToContactsAndGroups.cs" />
+    <Compile Include="Models\StopSubscriptionToContactsAndGroups.cs" />
+    <Compile Include="Models\MyContactsAndGroupsSubscription.cs" />
+    <Compile Include="Models\OnlineMeetingExtension.cs" />
+    <Compile Include="Models\OnlineMeetingExtensions.cs" />
+    <Compile Include="Models\MyAssignedOnlineMeeting.cs" />
+    <Compile Include="Models\To.cs" />
+    <Compile Include="Models\OnBehafOf.cs" />
+    <Compile Include="Models\StopMessaging.cs" />
+    <Compile Include="Models\SetIsTyping.cs" />
+    <Compile Include="Models\SendMessage.cs" />
+    <Compile Include="Models\TypingParticipants.cs" />
+    <Compile Include="Models\Memberships.cs" />
+    <Compile Include="Models\MakeMeAvailable.cs" />
+    <Compile Include="Models\ImmediateForwardToVoicemail.cs" />
+    <Compile Include="Models\ImmediateForwardToDelegates.cs" />
+    <Compile Include="Models\ImmediateForwardToContact.cs" />
+    <Compile Include="Models\HoldPhoneAudio.cs" />
+    <Compile Include="Models\MyGroupMembership.cs" />
+    <Compile Include="Models\From.cs" />
+    <Compile Include="Models\ForwardedBy.cs" />
+    <Compile Include="Models\FailedDeliveryParticipant.cs" />
+    <Compile Include="Models\DialInRegion.cs" />
+    <Compile Include="Models\DerivedPhoneAudio.cs" />
+    <Compile Include="Models\DerivedMessaging.cs" />
+    <Compile Include="Models\DerivedConversation.cs" />
+    <Compile Include="Models\Group2.cs" />
+    <Compile Include="Models\GroupMemberships.cs" />
+    <Compile Include="Models\GroupContacts.cs" />
+    <Compile Include="Models\ExpandDistributionGroup.cs" />
+    <Compile Include="Models\DefaultGroup.cs" />
+    <Compile Include="Models\NextConversationLogTranscripts.cs" />
+    <Compile Include="Models\ConversationLogTranscripts.cs" />
+    <Compile Include="Models\MessageTranscript.cs" />
+    <Compile Include="Models\ErrorTranscript.cs" />
+    <Compile Include="Models\ConversationLogRecipient.cs" />
+    <Compile Include="Models\MarkAsRead.cs" />
+    <Compile Include="Models\ConversationLogTranscript.cs" />
+    <Compile Include="Models\ContinuePhoneAudio.cs" />
+    <Compile Include="Models\ContinueMessaging.cs" />
+    <Compile Include="Models\ContactPrivacyRelationship2.cs" />
+    <Compile Include="Models\ConversationLogs.cs" />
+    <Compile Include="Models\ConversationLog.cs" />
+    <Compile Include="Models\AudioTranscript.cs" />
+    <Compile Include="Models\Applications2.cs" />
+    <Compile Include="Models\Applications.cs" />
+    <Compile Include="Models\AddMessaging.cs" />
+    <Compile Include="Models\StartPhoneAudio.cs" />
+    <Compile Include="Models\StartOnlineMeeting.cs" />
+    <Compile Include="Models\StartMessaging.cs" />
+    <Compile Include="Models\MissedItems.cs" />
+    <Compile Include="Models\JoinOnlineMeeting.cs" />
+    <Compile Include="Models\Conversations.cs" />
+    <Compile Include="Models\Lobby.cs" />
+    <Compile Include="Models\Leaders.cs" />
+    <Compile Include="Models\EnableAudienceMuteLock.cs" />
+    <Compile Include="Models\EnableAudienceMessaging.cs" />
+    <Compile Include="Models\DisableAudienceMuteLock.cs" />
+    <Compile Include="Models\DisableAudienceMessaging.cs" />
+    <Compile Include="Models\DataCollaboration.cs" />
+    <Compile Include="Models\VideoLockedOnParticipant.cs" />
+    <Compile Include="Models\AudioVideo.cs" />
+    <Compile Include="Models\ChangeVisibility.cs" />
+    <Compile Include="Models\ChangeNumber.cs" />
+    <Compile Include="Models\Decline.cs" />
+    <Compile Include="Models\Cancel.cs" />
+    <Compile Include="Models\Policies.cs" />
+    <Compile Include="Models\Events.cs" />
+    <Compile Include="Models\Batch.cs" />
+    <Compile Include="Models\ApplicationSharer.cs" />
+    <Compile Include="Models\Attendees.cs" />
+    <Compile Include="Models\ApplicationSharing.cs" />
+    <Compile Include="Models\MuteVideo.cs" />
+    <Compile Include="Models\UnmuteVideo.cs" />
+    <Compile Include="Models\UnmuteAudio.cs" />
+    <Compile Include="Models\MuteAudio.cs" />
+    <Compile Include="Models\ContactPhoto.cs" />
+    <Compile Include="Models\Eject.cs" />
+    <Compile Include="Models\ParticipantVideo.cs" />
+    <Compile Include="Models\ParticipantPanoramicVideo.cs" />
+    <Compile Include="Models\ParticipantMessaging.cs" />
+    <Compile Include="Models\ParticipantDataCollaboration.cs" />
+    <Compile Include="Models\ParticipantAudio.cs" />
+    <Compile Include="Models\ParticipantApplicationSharing.cs" />
+    <Compile Include="Models\Promote.cs" />
+    <Compile Include="Models\Reject.cs" />
+    <Compile Include="Models\Admit.cs" />
+    <Compile Include="Models\AddToPresenceSubscription.cs" />
+    <Compile Include="Models\AddToContactList.cs" />
+    <Compile Include="Models\AddPhoneAudio.cs" />
+    <Compile Include="Models\AddParticipant.cs" />
+    <Compile Include="Models\Accept.cs" />
+    <Compile Include="Models\AcceptedByContact.cs" />
+    <Compile Include="Models\OnlineMeeting.cs" />
+    <Compile Include="Models\PhoneAudio.cs" />
+    <Compile Include="Models\Messaging.cs" />
+    <Compile Include="Models\PresenceSubscriptionMembership.cs" />
+    <Compile Include="Models\PresenceSubscriptionMemberships.cs" />
+    <Compile Include="Models\PresenceSubscription.cs" />
+    <Compile Include="Models\Group.cs" />
+    <Compile Include="Models\MyGroups.cs" />
+    <Compile Include="Models\ContactSupportedModalities.cs" />
+    <Compile Include="Models\ContactPrivacyRelationship.cs" />
+    <Compile Include="Models\ContactPresence.cs" />
+    <Compile Include="Models\ContactNote.cs" />
+    <Compile Include="Models\ContactLocation.cs" />
+    <Compile Include="Models\Conversation.cs" />
+    <Compile Include="Models\DistributionGroup.cs" />
+    <Compile Include="Models\Search.cs" />
+    <Compile Include="Models\Message.cs" />
+    <Compile Include="Models\LocalParticipant.cs" />
+    <Compile Include="Models\Participant.cs" />
+    <Compile Include="Models\AcceptedByParticipant.cs" />
+    <Compile Include="Models\UCWAEvent.cs" />
+    <Compile Include="Models\MessagingInvitation.cs" />
+    <Compile Include="Models\UnansweredCallSettings.cs" />
+    <Compile Include="Models\SimultaneousRingSettings.cs" />
+    <Compile Include="Models\ImmediateForwardSettings.cs" />
+    <Compile Include="Models\Contact.cs" />
+    <Compile Include="Enums\GenericSynchronousError.cs" />
+    <Compile Include="Models\Application.cs" />
+    <Compile Include="Models\Communication.cs" />
+    <Compile Include="Models\Me.cs" />
+    <Compile Include="Models\OnlineMeetings.cs" />
+    <Compile Include="Models\People.cs" />
+    <Compile Include="Models\Note.cs" />
+    <Compile Include="Models\Location.cs" />
+    <Compile Include="Models\Phone.cs" />
+    <Compile Include="Models\MyContacts.cs" />
+    <Compile Include="Models\CallForwardingSettings.cs" />
+    <Compile Include="Models\Phones.cs" />
+    <Compile Include="Models\Presence.cs" />
+    <Compile Include="Models\UCWAModelBase.cs" />
+    <Compile Include="Services\HttpService.cs" />
+    <Compile Include="Services\Settings.cs" />
+    <Compile Include="UCWAClient.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

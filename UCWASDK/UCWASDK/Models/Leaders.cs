@@ -1,0 +1,33 @@
+﻿using Microsoft.Skype.UCWA.Services;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace Microsoft.Skype.UCWA.Models
+{
+    /// <summary>
+    /// Represents a view of the participants in the leader role in an onlineMeeting. 
+    /// </summary>
+    public class Leaders : UCWAModelBase
+    {       
+        [JsonProperty("_links")]
+        internal InternalLinks Links { get; set; }
+
+        [JsonIgnore]
+        public string Self { get { return Links.self.Href; } }
+
+        internal class InternalLinks
+        {
+            [JsonProperty("self")]
+            internal UCWAHref self { get; set; }
+
+            [JsonProperty("participant")]
+            internal UCWAHref[] participant { get; set; }
+        }
+
+        public async Task<List<Participant>> GetParticipants()
+        {
+            return await HttpService.GetList<Participant>(Links.participant);
+        }
+    }
+}

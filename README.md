@@ -55,6 +55,6 @@ await client.SignIn(availability:Availability.Online, supportMessage:true, suppo
 5\. Do anything you need.
 
 ##### SPECIAL THANKS TO
-Tam Huynh to help me start the project. https://github.com/tamhinsf/ucwa-sfbo-console
-David Newman to help me drive the project. https://www.youtube.com/watch?time_continue=4&v=Epqrsexnn5g
+Tam Huynh to help me start the project. https://github.com/tamhinsf/ucwa-sfbo-console<br/>
+David Newman to help me drive the project. https://www.youtube.com/watch?time_continue=4&v=Epqrsexnn5g<br/>
 Adam Hodge and Maxwell Roseman for encourage me.

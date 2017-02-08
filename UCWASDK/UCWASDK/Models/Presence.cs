@@ -11,7 +11,7 @@ namespace Microsoft.Skype.UCWA.Models
     /// </summary>
     public class Presence : UCWAModelBaseLink
     {
-        [JsonProperty("acitvity")]
+        [JsonProperty("activity")]
         public string Acitvity { get; set; }
 
         [JsonProperty("availability")]

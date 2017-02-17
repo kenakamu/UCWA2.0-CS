@@ -1,0 +1,152 @@
+﻿<Page
+    x:Class="UCWAUWP.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UCWAUWP.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:UCWAUWP.ViewModels"
+    xmlns:lm="using:UCWAUWP.Models"
+    xmlns:models="using:Microsoft.Skype.UCWA.Models"
+    mc:Ignorable="d">
+
+    <Page.DataContext>
+        <vm:MainPageViewModel/>
+    </Page.DataContext>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Padding="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid>
+                <StackPanel>
+                    <Button Content="Login" Click="{x:Bind ViewModel.SignIn}"/>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Ellipse Height="80" Width="80" Margin="10">
+                            <Ellipse.Fill>
+                                <ImageBrush ImageSource="{x:Bind ViewModel.ImageSource, Mode=OneWay}"/>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="{x:Bind ViewModel.Me.Name, Mode=OneWay}" FontSize="24"/>
+                            <ComboBox ItemsSource="{x:Bind ViewModel.Availabilities}" SelectedItem="{x:Bind ViewModel.Status, Mode=TwoWay}" SelectionChanged="{x:Bind ViewModel.UpdateStatus}"/>
+                            <TextBlock Text="{x:Bind ViewModel.Me.Title, Mode=OneWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
+                            <TextBlock Text="Note"/>
+                            <TextBox Height="100" Text="{x:Bind ViewModel.Memo, Mode=TwoWay}" LostFocus="{x:Bind ViewModel.UpdateMemo}" AcceptsReturn="True"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+            <TextBlock Grid.Row="1" Text="Groups"/>
+            <Grid Grid.Row="2">
+                <ListView                    
+                    IsItemClickEnabled="True"
+                    SelectionMode="Single"
+                    ItemsSource="{x:Bind ViewModel.MyGroups, Mode=OneWay}"
+                    ItemClick="{x:Bind ViewModel.GroupClicked}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Group2">
+                            <StackPanel>
+                                <TextBlock Text="{x:Bind Name}"  />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+            <TextBlock Grid.Row="3" Text="Contacts"/>
+            <Grid Grid.Row="4">
+                <ListView 
+                    IsItemClickEnabled="True"
+                    SelectionMode="Single"
+                    ItemsSource="{x:Bind ViewModel.MyContacts, Mode=OneWay}"
+                    ItemClick="{x:Bind ViewModel.ContactClicked}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="lm:LocalContact">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Height="60" Width="60" Margin="5">
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="{x:Bind ImageSource, Mode=OneWay}"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <TextBlock Text="{x:Bind Contact.Name, Mode=OneWay}"  />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Grid>
+
+        <!-- Chat -->
+        <Grid Grid.Column="1" Padding="30">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Content="Send" Click="{x:Bind ViewModel.SendMessage}"/>
+                    <TextBox Grid.Column="1" Text="{x:Bind ViewModel.Message, Mode=TwoWay}" KeyDown="{x:Bind ViewModel.SendMessageKeyDown}"/>
+                </Grid>
+                <ListView
+                    IsItemClickEnabled="True"
+                    ItemsSource="{Binding Messages}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Direction}"  />
+                                <TextBlock Text="{Binding Text}"  />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
+        </Grid>
+
+        <!-- Contact Detail -->
+        <Grid Grid.Column="2" Padding="30">
+            <StackPanel DataContext="{x:Bind ViewModel.SelectedContact}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Ellipse Height="80" Width="80" Margin="10">
+                        <Ellipse.Fill>
+                            <ImageBrush ImageSource="{x:Bind ViewModel.ContactImageSource, Mode=OneWay}"/>
+                        </Ellipse.Fill>
+                    </Ellipse>                  
+                    <Grid Grid.Column="1">
+                        <StackPanel>
+                            <TextBlock Text="{x:Bind ViewModel.SelectedContact.Name, Mode=OneWay}" FontSize="24"/>
+                            <TextBlock Text="{x:Bind ViewModel.ContactStatus, Mode=OneWay}" />
+                            <TextBlock Text="{x:Bind ViewModel.ContactAddress, Mode=OneWay}" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+                <TextBlock Text="{x:Bind ViewModel.ContactMemo, Mode=OneWay}" />
+                <TextBlock Text="{x:Bind ViewModel.SelectedContact.Company, Mode=OneWay}" />
+                <TextBlock Text="{x:Bind ViewModel.SelectedContact.Department, Mode=OneWay}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>

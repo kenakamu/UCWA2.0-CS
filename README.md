@@ -22,7 +22,7 @@ Once download the solution, do the following.
   10. Select "Skype for Business Online" and click "OK" (check mark)
   11. Select Delegated Permissions as you need. 
   12. Click "SAVE" button to save it.
-2. Open TokenService.cs file under TestClient project and update the values.
+2. Open TokenService.cs file under TestClient or UCWAUWP project and update the values.
 3. Compile all solution.
 4. Run TestClient project and try it.
 

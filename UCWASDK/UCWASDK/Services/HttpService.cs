@@ -56,7 +56,7 @@ namespace Microsoft.Skype.UCWA.Services
                     return JsonConvert.DeserializeObject<T>(jObject.ToString());
                 }
                 else
-                    HandleError(response);
+                    await HandleError(response);
             }
 
             return default(T);
@@ -77,7 +77,7 @@ namespace Microsoft.Skype.UCWA.Services
                 if (response.IsSuccessStatusCode)
                     return await response.Content.ReadAsByteArrayAsync();
                 else
-                    HandleError(response);
+                    await HandleError(response);
             }
 
             return null;
@@ -127,7 +127,7 @@ namespace Microsoft.Skype.UCWA.Services
                 return JsonConvert.DeserializeObject<T>(jObject.ToString());
             }
             else
-                HandleError(response);
+                await HandleError(response);
 
             return default(T);
         }
@@ -146,7 +146,7 @@ namespace Microsoft.Skype.UCWA.Services
             if (response.IsSuccessStatusCode)
                 return;
             else
-                HandleError(response);
+                await HandleError(response);
         }
 
         static public async Task<T> Put<T>(UCWAHref href, UCWAModelBase body, string version = "")
@@ -167,7 +167,7 @@ namespace Microsoft.Skype.UCWA.Services
                 return JsonConvert.DeserializeObject<T>(jObject.ToString());
             }
             else
-                HandleError(response);
+                await HandleError(response);
 
             return default(T);
         }
@@ -194,7 +194,7 @@ namespace Microsoft.Skype.UCWA.Services
                 if (response.IsSuccessStatusCode)
                     return;
                 else
-                    HandleError(response);
+                    await HandleError(response);
             }
         }
 

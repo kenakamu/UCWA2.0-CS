@@ -960,8 +960,30 @@ namespace Microsoft.Skype.UCWA
         private async Task<User> GetUserDiscoverUri()
         {
             using (HttpClient client = new HttpClient())
-            {  
-                var response = await client.GetAsync($"http://lyncdiscover.{Settings.Tenant}");
+            {
+                HttpResponseMessage response = null;
+                try
+                {
+                    response = await client.GetAsync($"https://lyncdiscover.{Settings.Tenant}");
+                }
+                catch (HttpRequestException hex)
+                {
+                    Exception ex = hex;
+                    while (ex != null)
+                    {
+                        if (ex.GetType().Name == "AuthenticationException")
+                        {
+                            response = await client.GetAsync($"http://lyncdiscover.{Settings.Tenant}");
+                            break;
+                        }
+                        ex = ex.InnerException;
+                    }
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
                 if (response.IsSuccessStatusCode)
                 {
                     var root = JsonConvert.DeserializeObject<Root>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Include });
@@ -972,7 +994,7 @@ namespace Microsoft.Skype.UCWA
                         return await root.GetUser();
                 }
                 else
-                    return null;                
+                    return null;
             }
         }
 

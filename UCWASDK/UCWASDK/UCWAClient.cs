@@ -978,7 +978,10 @@ namespace Microsoft.Skype.UCWA
                         }
                         ex = ex.InnerException;
                     }
-                    throw;
+                    if (response == null)
+                    {
+                        throw;
+                    }
                 }
                 catch (Exception ex)
                 {

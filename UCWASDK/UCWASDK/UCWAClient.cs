@@ -813,8 +813,8 @@ namespace Microsoft.Skype.UCWA
         /// <param name="message">Initial message.</param>
         public async Task AddMessaging(Conversation conversation, string message = "")
         {
-            Messaging messaing = await conversation.GetMessaging();
-            await messaing?.AddMessaging(MessageFormat.Plain, message);
+            Messaging messaging = await conversation.GetMessaging();
+            await messaging?.AddMessaging(MessageFormat.Plain, message);
         }
 
         /// <summary>

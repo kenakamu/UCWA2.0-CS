@@ -813,8 +813,8 @@ namespace Microsoft.Skype.UCWA
         /// <param name="message">Initial message.</param>
         public async Task AddMessaging(Conversation conversation, string message = "")
         {
-            Messaging messaing = await conversation.GetMessaging();
-            await messaing?.AddMessaging(MessageFormat.Plain, message);
+            Messaging messaging = await conversation.GetMessaging();
+            await messaging?.AddMessaging(MessageFormat.Plain, message);
         }
 
         /// <summary>
@@ -825,8 +825,8 @@ namespace Microsoft.Skype.UCWA
         public async Task AddMessaging(OnlineMeetingInvitation onlineMeetingInvitation, string message = "")
         {
             Conversation conversation = await onlineMeetingInvitation.GetConversation();
-            Messaging messaing = await conversation?.GetMessaging();
-            await messaing?.AddMessaging(MessageFormat.Plain, message);
+            Messaging messaging = await conversation?.GetMessaging();
+            await messaging?.AddMessaging(MessageFormat.Plain, message);
         }
 
         /// <summary>
@@ -846,8 +846,8 @@ namespace Microsoft.Skype.UCWA
         /// <param name="message">Message to add participant.</param>
         public async Task AddParticipant(string sip, Message message)
         {
-            Messaging messaing = await message.GetMessaging();
-            Conversation conversation = await messaing?.GetConversation();            
+            Messaging messaging = await message.GetMessaging();
+            Conversation conversation = await messaging?.GetConversation();            
             await conversation?.AddParticipant(sip);
         }
 

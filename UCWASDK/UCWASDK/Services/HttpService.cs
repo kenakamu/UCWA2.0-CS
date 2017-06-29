@@ -270,6 +270,8 @@ namespace Microsoft.Skype.UCWA.Services
                         throw new ApplicationNotFoundException(error);
                     else
                         throw new ResourceNotFoundException(error);
+                default:
+                    throw new InvalidOperationException(error);
                     
             }
         }

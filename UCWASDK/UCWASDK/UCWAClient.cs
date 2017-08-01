@@ -964,7 +964,15 @@ namespace Microsoft.Skype.UCWA
                 HttpResponseMessage response = null;
                 try
                 {
-                    response = await client.GetAsync($"https://lyncdiscover.{Settings.Tenant}");
+                    try
+                    {
+                        response = await client.GetAsync($"https://lyncdiscoverinternal.{Settings.Tenant}");
+                    }
+                    catch
+                    {
+                        // request externally if internal discovery fails
+                        response = await client.GetAsync($"https://lyncdiscover.{Settings.Tenant}");
+                    }
                 }
                 catch (HttpRequestException hex)
                 {

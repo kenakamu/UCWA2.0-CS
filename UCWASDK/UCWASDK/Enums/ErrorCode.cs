@@ -61,7 +61,7 @@
         /// <summary>
         /// A precondition is required.
         /// </summary>
-        ReconditionRequired,
+        PreconditionRequired,
         /// <summary>
         /// Remote Failure.
         /// </summary>

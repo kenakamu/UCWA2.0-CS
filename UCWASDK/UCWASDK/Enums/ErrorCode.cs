@@ -2,6 +2,7 @@
 {
     /// <summary>
     /// Error Codes
+    /// https://msdn.microsoft.com/en-us/skype/ucwa/errorcode_ref
     /// </summary>
     public enum ErrorCode
     {
@@ -17,6 +18,10 @@
         /// The request is too large.
         /// </summary>
         EntityTooLarge,
+        /// <summary>
+        /// Service failures due to Exchange did not return timely or returned malformed response.This is defined by us and not in standard HttpStatusCode.
+        /// </summary>
+        ExchangeServiceFailure,
         /// <summary>
         /// Forbidden.
         /// </summary>
@@ -41,6 +46,10 @@
         /// Method Not allowed.
         /// </summary>
         MethodNotAllowed,
+        /// <summary>
+        /// Not acceptable here.
+        /// </summary>
+        NotAcceptable,
         /// <summary>
         /// Resource Not Found.
         /// </summary>

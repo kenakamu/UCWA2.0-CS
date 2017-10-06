@@ -41,13 +41,13 @@ namespace Microsoft.Skype.UCWA.Services
 
         static public async Task<T> Get<T>(string uri) where T : UCWAModelBase
         {
-            if(!uri.StartsWith("http"))
+            if (!uri.StartsWith("http"))
                 uri = Settings.Host + uri;
 
             using (HttpClient client = await GetClient(uri))
-            {   
+            {
                 await Settings.UCWAClient.GetToken(client, uri);
-                
+
                 var response = await client.GetAsync(uri);
                 if (response.IsSuccessStatusCode)
                 {
@@ -158,7 +158,7 @@ namespace Microsoft.Skype.UCWA.Services
         }
 
         static public async Task<T> Put<T>(string uri, UCWAModelBase body, string version = "")
-        {            
+        {
             var response = await PutInternal(uri, body, version);
             if (response.IsSuccessStatusCode)
             {
@@ -206,12 +206,12 @@ namespace Microsoft.Skype.UCWA.Services
             if (!uri.StartsWith("http"))
                 uri = Settings.Host + uri;
 
-            if(body is UCWAModelBase)
+            if (body is UCWAModelBase)
             {
                 JsonSerializer serializer = new JsonSerializer() { DefaultValueHandling = DefaultValueHandling.Ignore };
                 serializer.Converters.Add(new StringEnumConverter());
                 JObject jobject = JObject.FromObject(body, serializer);
-                if(!(body is MessagingInvitation))
+                if (!(body is MessagingInvitation))
                     jobject["_links"]?.Parent?.Remove();
                 jobject["_embedded"]?.Parent?.Remove();
 
@@ -253,29 +253,16 @@ namespace Microsoft.Skype.UCWA.Services
                 jobject.Add(body.PGuid, "please pass this in a PUT request");
                 client.DefaultRequestHeaders.IfMatch.Add(new EntityTagHeaderValue("\"" + jobject["etag"].Value<string>() + "\""));
 
-                return await client.PutAsync(uri, 
+                return await client.PutAsync(uri,
                      new StringContent(JsonConvert.SerializeObject(jobject, new StringEnumConverter()), Encoding.UTF8, "application/json"));
             }
         }
-
-        static private async Task HandleError(HttpResponseMessage response)
+        static private ExceptionMappingService exceptionMappingService = new ExceptionMappingService();
+        private static async Task HandleError(HttpResponseMessage response)
         {
             var error = await response.Content.ReadAsStringAsync();
-            switch (response.StatusCode)
-            {
-                case HttpStatusCode.InternalServerError:
-                    throw new Exception(GenericSynchronousError.ServiceFailure.ToString());
-                case HttpStatusCode.NotFound:
-                    if(response.RequestMessage.RequestUri.ToString() == Settings.Host + Settings.UCWAClient.Application.Self)
-                        throw new ApplicationNotFoundException(error);
-                    else
-                        throw new ResourceNotFoundException(error);
-                default:
-                    throw new InvalidOperationException(error);
-                    
-            }
+            throw exceptionMappingService.GetExceptionFromHttpStatusCode(response, error);
         }
-
         static private void GetPGuid(JToken jToken)
         {
             if (jToken is JArray)
@@ -293,7 +280,7 @@ namespace Microsoft.Skype.UCWA.Services
         static private async Task<HttpClient> GetClient(string uri, string version = "")
         {
             HttpClient client = new HttpClient();
-            if(!string.IsNullOrEmpty(version))
+            if (!string.IsNullOrEmpty(version))
                 client.DefaultRequestHeaders.TryAddWithoutValidation("X-MS-RequiresMinResourceVersion", "2");
             await Settings.UCWAClient.GetToken(client, uri);
             return client;

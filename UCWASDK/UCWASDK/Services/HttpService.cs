@@ -37,10 +37,9 @@ namespace Microsoft.Skype.UCWA.Services
         }
         static public async Task<T> Get<T>(string uri) where T : UCWAModelBase
         {
-            if (!uri.StartsWith("http"))
-                uri = Settings.Host + uri;
+            uri = EnsureUriContainsHttp(uri);
 
-            using (HttpClient client = await GetClient(uri))
+            using (var client = await GetClient(uri))
             {
                 await Settings.UCWAClient.GetToken(client, uri);
 
@@ -52,14 +51,18 @@ namespace Microsoft.Skype.UCWA.Services
                 });
             }
         }
+        private static string EnsureUriContainsHttp(string uri)
+        {
+            if (!uri.StartsWith("http"))
+                uri = Settings.Host + uri;
+            return uri;
+        }
         static public async Task<byte[]> GetBinary(UCWAHref href)
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
                 return null;
 
-            var uri = href.Href;
-            if (!uri.StartsWith("http"))
-                uri = Settings.Host + uri;
+            var uri = EnsureUriContainsHttp(href.Href);
 
             using (var client = await GetClient(uri))
                 return await HandleError(await client.GetAsync(uri), async (response) =>
@@ -119,8 +122,7 @@ namespace Microsoft.Skype.UCWA.Services
             if (string.IsNullOrEmpty(uri))
                 return;
 
-            if (!uri.StartsWith("http"))
-                uri = Settings.Host + uri;
+            uri = EnsureUriContainsHttp(uri);
 
             using (var client = await GetClient(uri, version))
                 await HandleError(await client.DeleteAsync(uri));
@@ -130,8 +132,7 @@ namespace Microsoft.Skype.UCWA.Services
             if (string.IsNullOrEmpty(uri))
                 return new HttpResponseMessage();
 
-            if (!uri.StartsWith("http"))
-                uri = Settings.Host + uri;
+            uri = EnsureUriContainsHttp(uri);
 
             if (body is UCWAModelBase)
             {
@@ -166,8 +167,7 @@ namespace Microsoft.Skype.UCWA.Services
             if (string.IsNullOrEmpty(uri))
                 return new HttpResponseMessage();
 
-            if (!uri.StartsWith("http"))
-                uri = Settings.Host + uri;
+            uri = EnsureUriContainsHttp(uri);
 
             using (HttpClient client = await GetClient(uri, version))
             {

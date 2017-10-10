@@ -43,7 +43,7 @@ namespace Microsoft.Skype.UCWA.Services
             {
                 await Settings.UCWAClient.GetToken(client, uri);
 
-                return await HandleError(() => client.GetAsync(uri), async (response) =>
+                return await ExecuteHttpCallAndRetry(() => client.GetAsync(uri), async (response) =>
                 {
                     var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
                     GetPGuid(jObject as JToken);
@@ -65,7 +65,7 @@ namespace Microsoft.Skype.UCWA.Services
             var uri = EnsureUriContainsHttp(href.Href);
 
             using (var client = await GetClient(uri))
-                return await HandleError(() => client.GetAsync(uri), async (response) =>
+                return await ExecuteHttpCallAndRetry(() => client.GetAsync(uri), async (response) =>
                 {
                     return await response.Content.ReadAsByteArrayAsync();
                 });
@@ -79,7 +79,7 @@ namespace Microsoft.Skype.UCWA.Services
         }
         static public async Task<string> Post(string uri, object body, string version = "")
         {
-            return await HandleError(() => PostInternal(uri, body, version), (response) =>
+            return await ExecuteHttpCallAndRetry(() => PostInternal(uri, body, version), (response) =>
             {
                 if (response.StatusCode == HttpStatusCode.Created)
                     return response.Headers.Location.ToString();
@@ -96,7 +96,7 @@ namespace Microsoft.Skype.UCWA.Services
         }
         static public async Task<T> Post<T>(string uri, object body, string version = "")
         {
-            return await HandleError(() => PostInternal(uri, body, version), async (response) =>
+            return await ExecuteHttpCallAndRetry(() => PostInternal(uri, body, version), async (response) =>
             {
                 var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
                 GetPGuid(jObject as JToken);
@@ -105,11 +105,11 @@ namespace Microsoft.Skype.UCWA.Services
         }
         static public async Task Put(string uri, UCWAModelBase body, string version = "")
         {
-            await HandleError(() => PutInternal(uri, body, version));
+            await ExecuteHttpCallAndRetry(() => PutInternal(uri, body, version));
         }
         static public async Task<T> Put<T>(string uri, UCWAModelBase body, string version = "")
         {
-            return await HandleError(() => PutInternal(uri, body, version), async (response) =>
+            return await ExecuteHttpCallAndRetry(() => PutInternal(uri, body, version), async (response) =>
             {
                 var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
                 GetPGuid(jObject as JToken);
@@ -124,7 +124,7 @@ namespace Microsoft.Skype.UCWA.Services
             uri = EnsureUriContainsHttp(uri);
 
             using (var client = await GetClient(uri, version))
-                await HandleError(() => client.DeleteAsync(uri));
+                await ExecuteHttpCallAndRetry(() => client.DeleteAsync(uri));
         }
         static private async Task<HttpResponseMessage> PostInternal(string uri, object body, string version = "")
         {
@@ -183,40 +183,66 @@ namespace Microsoft.Skype.UCWA.Services
             }
         }
         static private ExceptionMappingService exceptionMappingService = new ExceptionMappingService();
-        private static async Task HandleError(Func<Task<HttpResponseMessage>> httpRequest, Action<HttpResponseMessage> deserializationHandler = null)
+        private static async Task ExecuteHttpCallAndRetry(Func<Task<HttpResponseMessage>> httpRequest, Action<HttpResponseMessage> deserializationHandler = null)
         {
-            var response = await httpRequest();
-            if (response.IsSuccessStatusCode)
-            {
-                deserializationHandler?.Invoke(response);
-                return;
-            }
-            else
-                await HandleErrorInternal(response);
+            var retryCount = 0U;
+            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount))
+                try
+                {
+                    var response = await httpRequest();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        deserializationHandler?.Invoke(response);
+                        return;
+                    }
+                    else
+                        await HandleError(response);
+                }
+                catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
+                {
+                    await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
+                    retryCount++;
+                }
         }
-        private static async Task<T> HandleError<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, Task<T>> deserializationHandler)
+        private static async Task<T> ExecuteHttpCallAndRetry<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, Task<T>> deserializationHandler)
         {
-            var response = await httpRequest();
-            if (response.IsSuccessStatusCode)
-                return await deserializationHandler(response);
-            else
-            {
-                await HandleErrorInternal(response);
-                return default(T); // this line is never going to be ran through because previous one always throws an error
-            }
+            var retryCount = 0U;
+            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount))
+                try
+                {
+                    var response = await httpRequest();
+                    if (response.IsSuccessStatusCode)
+                        return await deserializationHandler(response);
+                    else
+                        await HandleError(response);
+                }
+                catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
+                {
+                    await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
+                    retryCount++;
+                }
+            return default(T); // this line is never going to be ran through because previous one always throws an error
         }
-        private static async Task<T> HandleError<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, T> deserializationHandler)
+        private static async Task<T> ExecuteHttpCallAndRetry<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, T> deserializationHandler)
         {
-            var response = await httpRequest();
-            if (response.IsSuccessStatusCode)
-                return deserializationHandler(response);
-            else
-            {
-                await HandleErrorInternal(response);
-                return default(T); // this line is never going to be ran through because previous one always throws an error
-            }
+            var retryCount = 0U;
+            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount))
+                try
+                {
+                    var response = await httpRequest();
+                    if (response.IsSuccessStatusCode)
+                        return deserializationHandler(response);
+                    else
+                        await HandleError(response);
+                }
+                catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
+                {
+                    await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
+                    retryCount++;
+                }
+            return default(T); // this line is never going to be ran through because previous one always throws an error
         }
-        private static async Task HandleErrorInternal(HttpResponseMessage response)
+        private static async Task HandleError(HttpResponseMessage response)
         {
             var error = await response.Content.ReadAsStringAsync();
             throw exceptionMappingService.GetExceptionFromHttpStatusCode(response, error);

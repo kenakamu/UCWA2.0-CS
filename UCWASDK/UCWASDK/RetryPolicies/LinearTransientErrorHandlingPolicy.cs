@@ -23,9 +23,9 @@ namespace Microsoft.Skype.UCWA.RetryPolicies
         {
             return Convert.ToInt32((currentRetryCount + 1) * _baseBackOffIntervalInMs);
         }
-        public bool ShouldStopRetrying(uint currentRetryCount)
+        public bool ShouldRetry(uint currentRetryCount)
         {
-            return currentRetryCount > _maxRetryAttempts;
+            return currentRetryCount <= _maxRetryAttempts;
         }
     }
 }

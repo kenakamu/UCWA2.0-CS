@@ -16,6 +16,6 @@
         /// </summary>
         /// <param name="currentRetryCount">Number of retries already attempted</param>
         /// <returns>Should or not retry the service call</returns>
-        bool ShouldStopRetrying(uint currentRetryCount);
+        bool ShouldRetry(uint currentRetryCount);
     }
 }

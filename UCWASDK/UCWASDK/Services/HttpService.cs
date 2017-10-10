@@ -186,7 +186,8 @@ namespace Microsoft.Skype.UCWA.Services
         private static async Task ExecuteHttpCallAndRetry(Func<Task<HttpResponseMessage>> httpRequest, Action<HttpResponseMessage> deserializationHandler = null)
         {
             var retryCount = 0U;
-            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount))
+            Exception lastException = null;
+            do
                 try
                 {
                     var response = await httpRequest();
@@ -203,11 +204,17 @@ namespace Microsoft.Skype.UCWA.Services
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
                 }
+            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount));
+
+            if (lastException != null)
+                throw lastException;
+
         }
         private static async Task<T> ExecuteHttpCallAndRetry<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, Task<T>> deserializationHandler)
         {
             var retryCount = 0U;
-            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount))
+            Exception lastException = null;
+            do
                 try
                 {
                     var response = await httpRequest();
@@ -221,12 +228,18 @@ namespace Microsoft.Skype.UCWA.Services
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
                 }
-            return default(T); // this line is never going to be ran through because previous one always throws an error
+            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount));
+
+            if (lastException != null)
+                throw lastException;
+
+            return default(T); // this line is never going to be executed because previous one always throws an error
         }
         private static async Task<T> ExecuteHttpCallAndRetry<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, T> deserializationHandler)
         {
             var retryCount = 0U;
-            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount))
+            Exception lastException = null;
+            do
                 try
                 {
                     var response = await httpRequest();
@@ -237,10 +250,16 @@ namespace Microsoft.Skype.UCWA.Services
                 }
                 catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
                 {
+                    lastException = ex;// memorizing the last transient exception in case we still encounter it but run out of retries
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
                 }
-            return default(T); // this line is never going to be ran through because previous one always throws an error
+            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount));
+
+            if (lastException != null)
+                throw lastException;
+
+            return default(T); // this line is never going to be executed because previous one always throws an error
         }
         private static async Task HandleError(HttpResponseMessage response)
         {

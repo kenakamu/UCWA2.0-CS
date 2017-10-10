@@ -1,11 +1,9 @@
-﻿using Microsoft.Skype.UCWA.Enums;
-using Microsoft.Skype.UCWA.Models;
+﻿using Microsoft.Skype.UCWA.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -27,7 +25,6 @@ namespace Microsoft.Skype.UCWA.Services
 
             return await Get<T>(href.Href);
         }
-
         static public async Task<List<T>> GetList<T>(UCWAHref[] hrefs) where T : UCWAModelBase
         {
             if (hrefs == null || hrefs.Count() == 0)
@@ -38,7 +35,6 @@ namespace Microsoft.Skype.UCWA.Services
 
             return list;
         }
-
         static public async Task<T> Get<T>(string uri) where T : UCWAModelBase
         {
             if (!uri.StartsWith("http"))
@@ -61,7 +57,6 @@ namespace Microsoft.Skype.UCWA.Services
 
             return default(T);
         }
-
         static public async Task<byte[]> GetBinary(UCWAHref href)
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
@@ -82,15 +77,13 @@ namespace Microsoft.Skype.UCWA.Services
 
             return null;
         }
-
         static public async Task<string> Post(UCWAHref href, object body, string version = "")
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
-                return "";
+                return string.Empty;
 
             return await Post(href.Href, body, version);
         }
-
         static public async Task<string> Post(string uri, object body, string version = "")
         {
             HttpResponseMessage response = await PostInternal(uri, body, version);
@@ -100,14 +93,13 @@ namespace Microsoft.Skype.UCWA.Services
                 if (response.StatusCode == HttpStatusCode.Created)
                     return response.Headers.Location.ToString();
                 else
-                    return "";
+                    return string.Empty;
             }
             else
                 await HandleError(response);
 
-            return "";
+            return string.Empty;
         }
-
         static public async Task<T> Post<T>(UCWAHref href, object body, string version = "")
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
@@ -115,7 +107,6 @@ namespace Microsoft.Skype.UCWA.Services
 
             return await Post<T>(href.Href, body);
         }
-
         static public async Task<T> Post<T>(string uri, object body, string version = "")
         {
             HttpResponseMessage response = await PostInternal(uri, body, version);
@@ -131,15 +122,6 @@ namespace Microsoft.Skype.UCWA.Services
 
             return default(T);
         }
-
-        static public async Task Put(UCWAHref href, UCWAModelBase body, string version = "")
-        {
-            if (href == null || string.IsNullOrEmpty(href.Href))
-                return;
-
-            await Put(href.Href, body, version);
-        }
-
         static public async Task Put(string uri, UCWAModelBase body, string version = "")
         {
             var response = await PutInternal(uri, body, version);
@@ -148,15 +130,6 @@ namespace Microsoft.Skype.UCWA.Services
             else
                 await HandleError(response);
         }
-
-        static public async Task<T> Put<T>(UCWAHref href, UCWAModelBase body, string version = "")
-        {
-            if (href == null || string.IsNullOrEmpty(href.Href))
-                return default(T);
-
-            return await Put<T>(href.Href, body, version);
-        }
-
         static public async Task<T> Put<T>(string uri, UCWAModelBase body, string version = "")
         {
             var response = await PutInternal(uri, body, version);
@@ -171,15 +144,6 @@ namespace Microsoft.Skype.UCWA.Services
 
             return default(T);
         }
-
-        static public async Task Delete(UCWAHref href, string version = "")
-        {
-            if (href == null || string.IsNullOrEmpty(href.Href))
-                return;
-
-            await Delete(href.Href, version);
-        }
-
         static public async Task Delete(string uri, string version = "")
         {
             if (string.IsNullOrEmpty(uri))
@@ -197,7 +161,6 @@ namespace Microsoft.Skype.UCWA.Services
                     await HandleError(response);
             }
         }
-
         static private async Task<HttpResponseMessage> PostInternal(string uri, object body, string version = "")
         {
             if (string.IsNullOrEmpty(uri))
@@ -234,7 +197,6 @@ namespace Microsoft.Skype.UCWA.Services
                 return response;
             }
         }
-
         static private async Task<HttpResponseMessage> PutInternal(string uri, UCWAModelBase body, string version = "")
         {
             if (string.IsNullOrEmpty(uri))
@@ -276,7 +238,6 @@ namespace Microsoft.Skype.UCWA.Services
                     foreach (var embedded in jToken["_embedded"]) { GetPGuid(embedded.First()); }
             }
         }
-
         static private async Task<HttpClient> GetClient(string uri, string version = "")
         {
             HttpClient client = new HttpClient();

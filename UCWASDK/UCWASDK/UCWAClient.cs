@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Enums;
 using Microsoft.Skype.UCWA.Models;
+using Microsoft.Skype.UCWA.RetryPolicies;
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using System;
@@ -529,7 +530,7 @@ namespace Microsoft.Skype.UCWA
         #endregion
 
         #region People Delegates
-               
+
         public delegate void ContactLocationUpdatedHandler(ContactLocation contactLocation, Contact contact);
         public delegate void ContactNoteUpdatedHandler(ContactNote contactNote, Contact contact);
         public delegate void ContactPresenceUpdatedHandler(ContactPresence contactPresence, Contact contact);
@@ -583,12 +584,30 @@ namespace Microsoft.Skype.UCWA
         #endregion
 
         #region Properties
-
+        private ITransientErrorHandlingPolicy transientErrorHandlingPolicy;
+        /// <summary>
+        /// Policiy to leverage when http calls fail because of transient errors
+        /// </summary>
+        public ITransientErrorHandlingPolicy TransientErrorHandlingPolicy
+        {
+            get
+            {
+                if (transientErrorHandlingPolicy == null)
+                    transientErrorHandlingPolicy = new LinearTransientErrorHandlingPolicy(1000U, 3U);
+                return transientErrorHandlingPolicy;
+            }
+            set
+            {
+                transientErrorHandlingPolicy = value;
+            }
+        }
         /// <summary>
         /// UCWA Application object if you need to access all properties.
         /// </summary>
         private Application application;
-        public Application Application { get { return application; }
+        public Application Application
+        {
+            get { return application; }
             set
             {
                 if (value == null)
@@ -601,7 +620,7 @@ namespace Microsoft.Skype.UCWA
         /// UCWA host address.
         /// </summary>
         public string Host { get { return Settings.Host; } }
- 
+
         // Store next EventUri
         private string eventUri;
 
@@ -618,8 +637,10 @@ namespace Microsoft.Skype.UCWA
 
         #region Methods
 
-        public UCWAClient()
-        {            
+        public UCWAClient(ITransientErrorHandlingPolicy errorHandlingPolicy = null)
+        {
+            if (errorHandlingPolicy != null)
+                transientErrorHandlingPolicy = errorHandlingPolicy;
             Settings.UCWAClient = this;
         }
 
@@ -645,7 +666,7 @@ namespace Microsoft.Skype.UCWA
         /// <param name="phoneNumber">Specify PhoneNumber.</param>
         /// <param name="keepAlive">By specify keepAlive, it keeps sending ReportActivity every minute.</param>
         /// <returns></returns>
-        public async Task SignIn(Availability availability, bool supportMessage, bool supportAudio, 
+        public async Task SignIn(Availability availability, bool supportMessage, bool supportAudio,
             bool supportPlainText, bool supportHtmlFormat, string phoneNumber, bool keepAlive)
         {
             if (application == null)
@@ -674,7 +695,7 @@ namespace Microsoft.Skype.UCWA
         }
 
         #region People Methods
-        
+
         /// <summary>
         /// Search Contact and Distribution Group
         /// </summary>
@@ -706,11 +727,11 @@ namespace Microsoft.Skype.UCWA
             foreach (var sip in sips)
             {
                 PresenceSubscription presenceSubscription = presenceSubscriptions.Subscriptions.Where(x => x.Id == sip).FirstOrDefault();
-                if(presenceSubscription != null)
+                if (presenceSubscription != null)
                     await presenceSubscription.Delete();
             }
         }
-        
+
         /// <summary>
         /// Add a contact to specified group.
         /// </summary>
@@ -792,7 +813,7 @@ namespace Microsoft.Skype.UCWA
         /// <returns></returns>
         public async Task StartOnlineMeeting(string subject, Importance importance = Importance.Normal)
         {
-            string location = await application.Communication.StartOnlineMeeting(subject, importance);            
+            string location = await application.Communication.StartOnlineMeeting(subject, importance);
         }
 
         /// <summary>
@@ -847,7 +868,7 @@ namespace Microsoft.Skype.UCWA
         public async Task AddParticipant(string sip, Message message)
         {
             Messaging messaging = await message.GetMessaging();
-            Conversation conversation = await messaging?.GetConversation();            
+            Conversation conversation = await messaging?.GetConversation();
             await conversation?.AddParticipant(sip);
         }
 
@@ -883,7 +904,7 @@ namespace Microsoft.Skype.UCWA
         {
             Conversation conversation = await onlineMeetingInvitation.GetConversation();
             PhoneAudio phoneAudio = await conversation?.GetPhoneAudio();
-            await phoneAudio?.AddPhoneAudio(sip, phoneNumber);             
+            await phoneAudio?.AddPhoneAudio(sip, phoneNumber);
         }
 
         /// <summary>
@@ -943,11 +964,11 @@ namespace Microsoft.Skype.UCWA
                 if (user == null)
                     return false;
 
-                application = await user.CreateApplication (agentName, Guid.NewGuid().ToString(), language);
+                application = await user.CreateApplication(agentName, Guid.NewGuid().ToString(), language);
 
                 // Get host address
                 Settings.Host = new Uri(user.Self).Scheme + "://" + new Uri(user.Self).Host;
-               
+
                 eventUri = application.Links.Events;
                 return true;
             }
@@ -956,7 +977,7 @@ namespace Microsoft.Skype.UCWA
                 throw ex;
             }
         }
-       
+
         private async Task<User> GetUserDiscoverUri()
         {
             using (HttpClient client = new HttpClient())
@@ -1018,12 +1039,12 @@ namespace Microsoft.Skype.UCWA
         }
 
         #endregion
-                  
+
         private async Task<UCWAEvent> GetEvent()
         {
             while (true)
             {
-                if(string.IsNullOrEmpty(eventUri))
+                if (string.IsNullOrEmpty(eventUri))
                 {
                     return null;
                 }
@@ -1045,7 +1066,7 @@ namespace Microsoft.Skype.UCWA
                         eventUri = ucwaEvent.Links.Next;
                         return ucwaEvent;
                     }
-                    catch(TaskCanceledException ex)
+                    catch (TaskCanceledException ex)
                     {
                         await Task.Delay(1000);
                     }
@@ -1086,7 +1107,7 @@ namespace Microsoft.Skype.UCWA
                 }
             }
         }
-        
+
         internal async Task GetToken(HttpClient client, string uri)
         {
             SendingRequest(client, uri);
@@ -1108,9 +1129,9 @@ namespace Microsoft.Skype.UCWA
                 return;
 
             foreach (var ucwaEvent in sender.Events)
-            {   
+            {
                 switch (ucwaEvent.Type)
-                {                    
+                {
                     case "added":
                         HandleCommunicationAddedEvent(ucwaEvent);
                         break;
@@ -1136,7 +1157,7 @@ namespace Microsoft.Skype.UCWA
                 return;
 
             foreach (var ucwaEvent in sender.Events)
-            {                
+            {
                 switch (ucwaEvent.Type)
                 {
                     case "added":
@@ -1153,7 +1174,7 @@ namespace Microsoft.Skype.UCWA
                         break;
                     case "updated":
                         await HandleConversationUpdatedEvent(ucwaEvent);
-                        break;                   
+                        break;
                 }
             }
         }
@@ -1205,15 +1226,15 @@ namespace Microsoft.Skype.UCWA
         #endregion
 
         #region Communication Handers
-        
+
         private void HandleCommunicationAddedEvent(Event communication)
         {
             switch (communication.Link.Rel)
             {
                 case "conversation":
                     ConversationAdded?.Invoke(communication.Embedded.Conversation);
-                    break;               
-            }            
+                    break;
+            }
         }
 
         private void HandleCommunicationCompletedEvent(Event communication)
@@ -1278,7 +1299,7 @@ namespace Microsoft.Skype.UCWA
             switch (communication.Link.Rel)
             {
                 case "messagingInvitation":
-                    if(communication.Embedded.MessagingInvitation.Direction == Direction.Incoming)
+                    if (communication.Embedded.MessagingInvitation.Direction == Direction.Incoming)
                         MessagingInvitationReceived?.Invoke(communication.Embedded.MessagingInvitation);
                     else
                         MessagingInvitationSent?.Invoke(communication.Embedded.MessagingInvitation);
@@ -1301,7 +1322,7 @@ namespace Microsoft.Skype.UCWA
                     else
                         PhoneAudioInvitationSent?.Invoke(communication.Embedded.PhoneAudioInvitation);
                     break;
-            }            
+            }
         }
 
         #endregion
@@ -1318,13 +1339,13 @@ namespace Microsoft.Skype.UCWA
                         ApplicationSharer applicationSharer = await HttpService.Get<ApplicationSharer>(conversation.Link);
                         ApplicationSharerAdded.Invoke(applicationSharer);
                     }
-                    break;               
+                    break;
                 case "localParticipant":
                     if (LocalParticipantAdded != null)
                     {
                         LocalParticipant localParticipant = await HttpService.Get<LocalParticipant>(conversation.Link);
                         LocalParticipantAdded?.Invoke(localParticipant);
-                    }                    
+                    }
                     break;
                 case "onlineMeeting":
                     OnlineMeetingAdded?.Invoke(conversation.Embedded.OnlineMeeting);
@@ -1373,7 +1394,7 @@ namespace Microsoft.Skype.UCWA
                 case "videoLockedOnParticipant":
                     VideoLockedOnParticipantAdded?.Invoke(conversation.Embedded.VideoLockedOnParticipant);
                     break;
-            }            
+            }
         }
 
         private void HandleConversationCompletedEvent(Event conversation)
@@ -1385,10 +1406,10 @@ namespace Microsoft.Skype.UCWA
                         MessageReceived?.Invoke(conversation.Embedded.Message);
                     else
                         MessageSent?.Invoke(conversation.Embedded.Message);
-                    break;              
+                    break;
             }
         }
-              
+
         private async Task HandleConversationDeletedEvent(Event conversation)
         {
             switch (conversation.Link.Rel)
@@ -1405,7 +1426,7 @@ namespace Microsoft.Skype.UCWA
                     {
                         LocalParticipant localParticipant = await HttpService.Get<LocalParticipant>(conversation.Link);
                         LocalParticipantDeleted.Invoke(localParticipant);
-                    }                    
+                    }
                     break;
                 case "participant":
                     await HandleParticipantDeletedEvent(conversation);
@@ -1465,7 +1486,7 @@ namespace Microsoft.Skype.UCWA
                     DataCollaborationUpdated?.Invoke(conversation.Embedded.DataCollaboration);
                     break;
                 case "localParticipant":
-                    if(LocalParticipantUpdated != null)
+                    if (LocalParticipantUpdated != null)
                     {
                         LocalParticipant localParticipant = await HttpService.Get<LocalParticipant>(conversation.Link);
                         LocalParticipantUpdated.Invoke(localParticipant);
@@ -1482,14 +1503,14 @@ namespace Microsoft.Skype.UCWA
                     {
                         Participant participant = await HttpService.Get<Participant>(conversation.Link);
                         ParticipantUpdated.Invoke(participant);
-                    }                    
+                    }
                     break;
                 case "participantApplicationSharing":
                     if (ParticipantApplicationSharingUpdated != null)
                     {
                         ParticipantApplicationSharing participantApplicationSharing = await HttpService.Get<ParticipantApplicationSharing>(conversation.Link);
                         ParticipantApplicationSharingUpdated?.Invoke(participantApplicationSharing);
-                    }                    
+                    }
                     break;
                 case "participantAudio":
                     if (ParticipantAudioUpdated != null)
@@ -1579,11 +1600,11 @@ namespace Microsoft.Skype.UCWA
                     MeStarted?.Invoke();
                     break;
                 case "location":
-                    if(MyLocationUpdated!=null)
+                    if (MyLocationUpdated != null)
                     {
                         Location location = await Me.GetLocation();
                         MyLocationUpdated.Invoke(location);
-                    }                    
+                    }
                     break;
                 case "note":
                     if (MyNoteUpdated != null)
@@ -1651,7 +1672,7 @@ namespace Microsoft.Skype.UCWA
         }
 
         private async Task HandlePeopleUpdatedEvent(Event people)
-        {           
+        {
             switch (people.Link.Rel)
             {
                 case "contactLocation":
@@ -1676,7 +1697,7 @@ namespace Microsoft.Skype.UCWA
                         Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href);
                         ContactPresence contactPresence = await HttpService.Get<ContactPresence>(people.Link.Href);
                         ContactPresenceUpdated.Invoke(contactPresence, contact);
-                    }                    
+                    }
                     break;
                 case "contactPrivacyRelationship":
                     if (ContactPrivacyRelationshipUpdated != null)
@@ -1684,7 +1705,7 @@ namespace Microsoft.Skype.UCWA
                         Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href);
                         ContactPrivacyRelationship2 contactPrivacyRelationship2 = await HttpService.Get<ContactPrivacyRelationship2>(people.Link.Href);
                         ContactPrivacyRelationshipUpdated.Invoke(contactPrivacyRelationship2, contact);
-                    }                    
+                    }
                     break;
                 case "contactSupportedModalities":
                     if (ContactSupportedModalitiesUpdated != null)
@@ -1692,7 +1713,7 @@ namespace Microsoft.Skype.UCWA
                         Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href);
                         ContactSupportedModalities contactSupportedModalities = await HttpService.Get<ContactSupportedModalities>(people.Link.Href);
                         ContactSupportedModalitiesUpdated.Invoke(contactSupportedModalities, contact);
-                    }                    
+                    }
                     break;
                 case "distributionGroup":
                     DistributionGroupUpdated?.Invoke(people.Embedded.DistributionGroup);
@@ -1714,9 +1735,9 @@ namespace Microsoft.Skype.UCWA
         #region Contact Handlers
 
         private async Task HandleContactAddedEvent(Event people)
-        {   
+        {
             switch (people.In.Rel)
-            {                
+            {
                 case "group":
                     if (ContactAddedToGroup != null)
                     {
@@ -1737,13 +1758,13 @@ namespace Microsoft.Skype.UCWA
                     {
                         Contact contact = await HttpService.Get<Contact>(people.Link.Href);
                         ContactSubscriptionAdded.Invoke(contact);
-                    }                   
+                    }
                     break;
             }
         }
 
         private async Task HandleContactDeletedEvent(Event people)
-        {            
+        {
             switch (people.In.Rel)
             {
                 case "group":
@@ -1892,7 +1913,7 @@ namespace Microsoft.Skype.UCWA
                     break;
             }
         }
-        
+
         private async Task HandleDistributionGroupAddedEvent(Event people)
         {
             switch (people.In.Rel)

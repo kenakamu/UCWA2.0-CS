@@ -259,6 +259,8 @@
     <Compile Include="Models\Phones.cs" />
     <Compile Include="Models\Presence.cs" />
     <Compile Include="Models\UCWAModelBase.cs" />
+    <Compile Include="RetryPolicies\ITransientErrorHandlingPolicy.cs" />
+    <Compile Include="RetryPolicies\LinearTransientErrorHandlingPolicy.cs" />
     <Compile Include="Services\ExceptionMappingService.cs" />
     <Compile Include="Services\HttpService.cs" />
     <Compile Include="Services\Settings.cs" />

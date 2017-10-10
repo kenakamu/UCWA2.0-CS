@@ -2,12 +2,8 @@
 using Microsoft.Skype.UCWA.Models;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Services
 {
@@ -42,24 +38,24 @@ namespace Microsoft.Skype.UCWA.Services
                 case HttpStatusCode.ExpectationFailed:
                 case HttpStatusCode.PreconditionFailed:
                     // these ones should try to handle the conflict
-                    return new PreconditionFailedException(reason == null ? error : reason.Message) { Reason = reason, IsTransient = false };
+                    return new PreconditionFailedException(reason?.Message ?? error) { Reason = reason, IsTransient = false };
                 #endregion
                 #region nontransient
                 case HttpStatusCode.Forbidden:
                     return new UnauthorizedAccessException(error);
                 case HttpStatusCode.RequestEntityTooLarge:
-                    return new EntityTooLargeException(reason == null ? error : reason.Message) { Reason = reason, IsTransient = false };
+                    return new EntityTooLargeException(reason?.Message ?? error) { Reason = reason, IsTransient = false };
                 case HttpStatusCode.BadRequest:
-                    return new BadRequestException(reason == null ? error : reason.Message) { Reason = reason, IsTransient = false };
+                    return new BadRequestException(reason?.Message ?? error) { Reason = reason, IsTransient = false };
                 case HttpStatusCode.MethodNotAllowed:
-                    return new MethodNotAllowedException(reason == null ? error : reason.Message) { Reason = reason, IsTransient = false };
+                    return new MethodNotAllowedException(reason?.Message ?? error) { Reason = reason, IsTransient = false };
                 case HttpStatusCode.UnsupportedMediaType:
-                    return new UnsupportedMediaTypeException(reason == null ? error : reason.Message) { Reason = reason, IsTransient = false };
+                    return new UnsupportedMediaTypeException(reason?.Message ?? error) { Reason = reason, IsTransient = false };
                 case HttpStatusCode.NotFound:
                     if (response.RequestMessage.RequestUri.ToString() == Settings.Host + Settings.UCWAClient.Application.Self)
-                        return new ApplicationNotFoundException(reason == null ? error : reason.Message) { Reason = reason, IsTransient = false };
+                        return new ApplicationNotFoundException(reason?.Message ?? error) { Reason = reason, IsTransient = false };
                     else
-                        return new ResourceNotFoundException(reason == null ? error : reason.Message) { Reason = reason, IsTransient = false };
+                        return new ResourceNotFoundException(reason?.Message ?? error) { Reason = reason, IsTransient = false };
                 #endregion
                 default:
                     return new InvalidOperationException(error);
@@ -119,7 +115,7 @@ namespace Microsoft.Skype.UCWA.Services
                     return JsonConvert.DeserializeObject<Reason>(serializedReason);
             }
             catch (Exception) // Error trying to deserialize the reason
-            {
+            {//TODO: this should be logged because it's nevralgic to the error handling behavior. Not being .net standard doesn't help having a proper Trace API
                 return null;
             }
         }
@@ -183,6 +179,7 @@ namespace Microsoft.Skype.UCWA.Services
                 case ErrorSubCode.MediaFallback:
                 case ErrorSubCode.MediaEncryptionMismatch:
                 case ErrorSubCode.MediaEncryptionNotSupported:
+                case ErrorSubCode.OperationNotSupported:
                     return new UnsupportedMediaTypeException(reason.Message) { Reason = reason, IsTransient = false };
                 case ErrorSubCode.NoDelegatesConfigured:
                     throw new ServiceFailureException(reason.Message) { Reason = reason, IsTransient = false };

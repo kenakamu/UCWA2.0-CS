@@ -44,18 +44,13 @@ namespace Microsoft.Skype.UCWA.Services
             {
                 await Settings.UCWAClient.GetToken(client, uri);
 
-                var response = await client.GetAsync(uri);
-                if (response.IsSuccessStatusCode)
+                return await HandleError(await client.GetAsync(uri), async (response) =>
                 {
                     var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
                     GetPGuid(jObject as JToken);
                     return JsonConvert.DeserializeObject<T>(jObject.ToString());
-                }
-                else
-                    await HandleError(response);
+                });
             }
-
-            return default(T);
         }
         static public async Task<byte[]> GetBinary(UCWAHref href)
         {
@@ -66,16 +61,11 @@ namespace Microsoft.Skype.UCWA.Services
             if (!uri.StartsWith("http"))
                 uri = Settings.Host + uri;
 
-            using (HttpClient client = await GetClient(uri))
-            {
-                var response = await client.GetAsync(uri);
-                if (response.IsSuccessStatusCode)
+            using (var client = await GetClient(uri))
+                return await HandleError(await client.GetAsync(uri), async (response) =>
+                {
                     return await response.Content.ReadAsByteArrayAsync();
-                else
-                    await HandleError(response);
-            }
-
-            return null;
+                });
         }
         static public async Task<string> Post(UCWAHref href, object body, string version = "")
         {
@@ -86,19 +76,13 @@ namespace Microsoft.Skype.UCWA.Services
         }
         static public async Task<string> Post(string uri, object body, string version = "")
         {
-            HttpResponseMessage response = await PostInternal(uri, body, version);
-
-            if (response.IsSuccessStatusCode)
+            return await HandleError(await PostInternal(uri, body, version), (response) =>
             {
                 if (response.StatusCode == HttpStatusCode.Created)
                     return response.Headers.Location.ToString();
                 else
                     return string.Empty;
-            }
-            else
-                await HandleError(response);
-
-            return string.Empty;
+            });
         }
         static public async Task<T> Post<T>(UCWAHref href, object body, string version = "")
         {
@@ -109,40 +93,26 @@ namespace Microsoft.Skype.UCWA.Services
         }
         static public async Task<T> Post<T>(string uri, object body, string version = "")
         {
-            HttpResponseMessage response = await PostInternal(uri, body, version);
-
-            if (response.IsSuccessStatusCode)
+            return await HandleError(await PostInternal(uri, body, version), async (response) =>
             {
                 var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
                 GetPGuid(jObject as JToken);
                 return JsonConvert.DeserializeObject<T>(jObject.ToString());
-            }
-            else
-                await HandleError(response);
-
-            return default(T);
+            });
         }
         static public async Task Put(string uri, UCWAModelBase body, string version = "")
         {
             var response = await PutInternal(uri, body, version);
-            if (response.IsSuccessStatusCode)
-                return;
-            else
-                await HandleError(response);
+            await HandleError(response);
         }
         static public async Task<T> Put<T>(string uri, UCWAModelBase body, string version = "")
         {
-            var response = await PutInternal(uri, body, version);
-            if (response.IsSuccessStatusCode)
+            return await HandleError(await PutInternal(uri, body, version), async (response) =>
             {
                 var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
                 GetPGuid(jObject as JToken);
                 return JsonConvert.DeserializeObject<T>(jObject.ToString());
-            }
-            else
-                await HandleError(response);
-
-            return default(T);
+            });
         }
         static public async Task Delete(string uri, string version = "")
         {
@@ -152,14 +122,8 @@ namespace Microsoft.Skype.UCWA.Services
             if (!uri.StartsWith("http"))
                 uri = Settings.Host + uri;
 
-            using (HttpClient client = await GetClient(uri, version))
-            {
-                var response = await client.DeleteAsync(uri);
-                if (response.IsSuccessStatusCode)
-                    return;
-                else
-                    await HandleError(response);
-            }
+            using (var client = await GetClient(uri, version))
+                await HandleError(await client.DeleteAsync(uri));
         }
         static private async Task<HttpResponseMessage> PostInternal(string uri, object body, string version = "")
         {
@@ -220,7 +184,37 @@ namespace Microsoft.Skype.UCWA.Services
             }
         }
         static private ExceptionMappingService exceptionMappingService = new ExceptionMappingService();
-        private static async Task HandleError(HttpResponseMessage response)
+        private static async Task HandleError(HttpResponseMessage response, Action<HttpResponseMessage> deserializationHandler = null)
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                deserializationHandler?.Invoke(response);
+                return;
+            }
+            else
+                await HandleErrorInternal(response);
+        }
+        private static async Task<T> HandleError<T>(HttpResponseMessage response, Func<HttpResponseMessage, Task<T>> deserializationHandler)
+        {
+            if (response.IsSuccessStatusCode)
+                return await deserializationHandler(response);
+            else
+            {
+                await HandleErrorInternal(response);
+                return default(T); // this line is never going to be ran through because previous one always throws an error
+            }
+        }
+        private static async Task<T> HandleError<T>(HttpResponseMessage response, Func<HttpResponseMessage, T> deserializationHandler)
+        {
+            if (response.IsSuccessStatusCode)
+                return deserializationHandler(response);
+            else
+            {
+                await HandleErrorInternal(response);
+                return default(T); // this line is never going to be ran through because previous one always throws an error
+            }
+        }
+        private static async Task HandleErrorInternal(HttpResponseMessage response)
         {
             var error = await response.Content.ReadAsStringAsync();
             throw exceptionMappingService.GetExceptionFromHttpStatusCode(response, error);

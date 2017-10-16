@@ -15,6 +15,6 @@ namespace Microsoft.Skype.UCWA.Models
         public string Message { get; internal set; }
 
         [JsonProperty("subcode")]
-        public string Subcode { get; internal set; }
+        public ErrorSubCode Subcode { get; internal set; }
     }
 }

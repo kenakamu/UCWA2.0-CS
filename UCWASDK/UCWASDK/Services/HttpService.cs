@@ -18,31 +18,32 @@ namespace Microsoft.Skype.UCWA.Services
     /// </summary>
     static public class HttpService
     {
-        static public async Task<T> Get<T>(UCWAHref href) where T : UCWAModelBase
+        static Dictionary<string, HttpClient> clientPool = new Dictionary<string, HttpClient>();
+        static private ExceptionMappingService exceptionMappingService = new ExceptionMappingService();
+
+        static public async Task<T> Get<T>(UCWAHref href, string version = "") where T : UCWAModelBase
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
                 return default(T);
 
-            return await Get<T>(href.Href);
+            return await Get<T>(href.Href, version);
         }
-        static public async Task<List<T>> GetList<T>(UCWAHref[] hrefs) where T : UCWAModelBase
+        static public async Task<List<T>> GetList<T>(UCWAHref[] hrefs, string version = "") where T : UCWAModelBase
         {
             if (hrefs == null || hrefs.Count() == 0)
                 return null;
 
             List<T> list = new List<T>();
-            foreach (var href in hrefs) { if (!string.IsNullOrEmpty(href.Href)) list.Add(await Get<T>(href.Href)); }
+            foreach (var href in hrefs) { if (!string.IsNullOrEmpty(href.Href)) list.Add(await Get<T>(href.Href, version)); }
 
             return list;
         }
-        static public async Task<T> Get<T>(string uri) where T : UCWAModelBase
+        static public async Task<T> Get<T>(string uri, string version = "") where T : UCWAModelBase
         {
             uri = EnsureUriContainsHttp(uri);
 
-            using (var client = await GetClient(uri))
+            using (var client = await GetClient(uri, version))
             {
-                await Settings.UCWAClient.GetToken(client, uri);
-
                 return await ExecuteHttpCallAndRetry(() => client.GetAsync(uri), async (response) =>
                 {
                     var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
@@ -50,21 +51,15 @@ namespace Microsoft.Skype.UCWA.Services
                     return JsonConvert.DeserializeObject<T>(jObject.ToString());
                 });
             }
-        }
-        private static string EnsureUriContainsHttp(string uri)
-        {
-            if (!uri.StartsWith("http"))
-                uri = Settings.Host + uri;
-            return uri;
-        }
-        static public async Task<byte[]> GetBinary(UCWAHref href)
+        }        
+        static public async Task<byte[]> GetBinary(UCWAHref href, string version = "")
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
                 return null;
 
             var uri = EnsureUriContainsHttp(href.Href);
 
-            using (var client = await GetClient(uri))
+            using (var client = await GetClient(uri, version))
                 return await ExecuteHttpCallAndRetry(() => client.GetAsync(uri), async (response) =>
                 {
                     return await response.Content.ReadAsByteArrayAsync();
@@ -92,7 +87,7 @@ namespace Microsoft.Skype.UCWA.Services
             if (href == null || string.IsNullOrEmpty(href.Href))
                 return default(T);
 
-            return await Post<T>(href.Href, body);
+            return await Post<T>(href.Href, body, version);
         }
         static public async Task<T> Post<T>(string uri, object body, string version = "")
         {
@@ -126,6 +121,13 @@ namespace Microsoft.Skype.UCWA.Services
             using (var client = await GetClient(uri, version))
                 await ExecuteHttpCallAndRetry(() => client.DeleteAsync(uri));
         }
+
+        static private string EnsureUriContainsHttp(string uri)
+        {
+            if (!uri.StartsWith("http"))
+                uri = Settings.Host + uri;
+            return uri;
+        }
         static private async Task<HttpResponseMessage> PostInternal(string uri, object body, string version = "")
         {
             if (string.IsNullOrEmpty(uri))
@@ -145,7 +147,7 @@ namespace Microsoft.Skype.UCWA.Services
                 body = jobject;
             }
 
-            using (HttpClient client = await GetClient(uri, version))
+            using (var client = await GetClient(uri, version))
             {
                 HttpResponseMessage response = null;
 
@@ -168,7 +170,7 @@ namespace Microsoft.Skype.UCWA.Services
 
             uri = EnsureUriContainsHttp(uri);
 
-            using (HttpClient client = await GetClient(uri, version))
+            using (var client = await GetClient(uri, version))
             {
                 JsonSerializer serializer = new JsonSerializer() { DefaultValueHandling = DefaultValueHandling.Ignore };
                 serializer.Converters.Add(new StringEnumConverter());
@@ -182,8 +184,7 @@ namespace Microsoft.Skype.UCWA.Services
                      new StringContent(JsonConvert.SerializeObject(jobject, new StringEnumConverter()), Encoding.UTF8, "application/json"));
             }
         }
-        static private ExceptionMappingService exceptionMappingService = new ExceptionMappingService();
-        private static async Task ExecuteHttpCallAndRetry(Func<Task<HttpResponseMessage>> httpRequest, Action<HttpResponseMessage> deserializationHandler = null)
+        static private async Task ExecuteHttpCallAndRetry(Func<Task<HttpResponseMessage>> httpRequest, Action<HttpResponseMessage> deserializationHandler = null)
         {
             var retryCount = 0U;
             Exception lastException = null;
@@ -211,7 +212,7 @@ namespace Microsoft.Skype.UCWA.Services
                 throw lastException;
 
         }
-        private static async Task<T> ExecuteHttpCallAndRetry<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, Task<T>> deserializationHandler)
+        static private async Task<T> ExecuteHttpCallAndRetry<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, Task<T>> deserializationHandler)
         {
             var retryCount = 0U;
             Exception lastException = null;
@@ -237,7 +238,7 @@ namespace Microsoft.Skype.UCWA.Services
 
             return default(T); // this line is never going to be executed because previous one always throws an error
         }
-        private static async Task<T> ExecuteHttpCallAndRetry<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, T> deserializationHandler)
+        static private async Task<T> ExecuteHttpCallAndRetry<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, T> deserializationHandler)
         {
             var retryCount = 0U;
             Exception lastException = null;
@@ -263,7 +264,7 @@ namespace Microsoft.Skype.UCWA.Services
 
             return default(T); // this line is never going to be executed because previous one always throws an error
         }
-        private static async Task HandleError(HttpResponseMessage response)
+        static private async Task HandleError(HttpResponseMessage response)
         {
             var error = await response.Content.ReadAsStringAsync();
             throw exceptionMappingService.GetExceptionFromHttpStatusCode(response, error);
@@ -281,11 +282,28 @@ namespace Microsoft.Skype.UCWA.Services
                     foreach (var embedded in jToken["_embedded"]) { GetPGuid(embedded.First()); }
             }
         }
+        /// <summary>
+        /// Returns same HttpClient instance per Uri hostname.
+        /// </summary>
         static private async Task<HttpClient> GetClient(string uri, string version = "")
         {
-            HttpClient client = new HttpClient();
-            if (!string.IsNullOrEmpty(version))
-                client.DefaultRequestHeaders.TryAddWithoutValidation("X-MS-RequiresMinResourceVersion", "2");
+            HttpClient client;
+            var hostname = new Uri(uri).Host;
+            if (clientPool.ContainsKey(hostname))
+            {
+                client = clientPool[hostname];
+            }
+            else
+            {
+                // If we want to consider concurrency in the future, we may implement lock, but as this is client library, I just keep it simple at the moment.
+                client = new HttpClient();
+                if (string.IsNullOrEmpty(version))
+                    version = "2";
+                client.DefaultRequestHeaders.TryAddWithoutValidation("X-MS-RequiresMinResourceVersion", version);
+                clientPool.Add(hostname, client);
+            }
+
+            // Get Token everytime via ADAL
             await Settings.UCWAClient.GetToken(client, uri);
             return client;
         }

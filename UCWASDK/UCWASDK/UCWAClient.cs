@@ -14,7 +14,7 @@ using static Microsoft.Skype.UCWA.Models.UCWAEvent.EventSender;
 
 namespace Microsoft.Skype.UCWA
 {
-    public class UCWAClient
+    public class UCWAClient : IDisposable
     {
         #region Events
 
@@ -642,6 +642,11 @@ namespace Microsoft.Skype.UCWA
             if (errorHandlingPolicy != null)
                 transientErrorHandlingPolicy = errorHandlingPolicy;
             Settings.UCWAClient = this;
+        }
+
+        public void Dispose()
+        {
+            HttpService.DisposeHttpClients();
         }
 
         /// <summary>

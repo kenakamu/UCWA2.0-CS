@@ -22,6 +22,10 @@
         /// </summary>
         Messaging,
         /// <summary>
+        /// Panoramic video.
+        /// </summary>
+        PanoramicVideo,
+        /// <summary>
         /// Video.
         /// </summary>
         Video

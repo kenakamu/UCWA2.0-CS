@@ -182,10 +182,11 @@ namespace Microsoft.Skype.UCWA.Services
             jobject["_links"]?.Parent?.Remove();
             jobject["_embedded"]?.Parent?.Remove();
             jobject.Add(body.PGuid, "please pass this in a PUT request");
-            client.DefaultRequestHeaders.IfMatch.Add(new EntityTagHeaderValue("\"" + jobject["etag"].Value<string>() + "\""));
 
-            return await client.PutAsync(uri,
-                 new StringContent(JsonConvert.SerializeObject(jobject, new StringEnumConverter()), Encoding.UTF8, "application/json"));
+            var request = new HttpRequestMessage(HttpMethod.Put, uri);
+            request.Content = new StringContent(JsonConvert.SerializeObject(jobject, new StringEnumConverter()), Encoding.UTF8, "application/json");
+            request.Headers.Add("If-Match", "\"" + body.ETag + "\"");
+            return await client.SendAsync(request);
         }
         static private async Task ExecuteHttpCallAndRetry(Func<Task<HttpResponseMessage>> httpRequest, Action<HttpResponseMessage> deserializationHandler = null)
         {

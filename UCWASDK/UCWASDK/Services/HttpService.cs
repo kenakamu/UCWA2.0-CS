@@ -183,8 +183,10 @@ namespace Microsoft.Skype.UCWA.Services
             jobject["_embedded"]?.Parent?.Remove();
             jobject.Add(body.PGuid, "please pass this in a PUT request");
 
-            var request = new HttpRequestMessage(HttpMethod.Put, uri);
-            request.Content = new StringContent(JsonConvert.SerializeObject(jobject, new StringEnumConverter()), Encoding.UTF8, "application/json");
+            var request = new HttpRequestMessage(HttpMethod.Put, uri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(jobject, new StringEnumConverter()), Encoding.UTF8, "application/json")
+            };
             request.Headers.Add("If-Match", "\"" + body.ETag + "\"");
             return await client.SendAsync(request);
         }

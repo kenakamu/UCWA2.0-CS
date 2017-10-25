@@ -637,6 +637,11 @@ namespace Microsoft.Skype.UCWA
 
         #region Methods
 
+        /// <summary>
+        /// Instantiate UCWAClient by specifying ErrorHandling Policy.
+        /// See https://github.com/kenakamu/UCWA2.0-CS/wiki/Performance-Considerations for performance considerations.
+        /// </summary>
+        /// <param name="errorHandlingPolicy"></param>
         public UCWAClient(ITransientErrorHandlingPolicy errorHandlingPolicy = null)
         {
             if (errorHandlingPolicy != null)
@@ -644,6 +649,9 @@ namespace Microsoft.Skype.UCWA
             Settings.UCWAClient = this;
         }
 
+        /// <summary>
+        /// Dispose underline HttpClient objects.
+        /// </summary>
         public void Dispose()
         {
             HttpService.DisposeHttpClients();

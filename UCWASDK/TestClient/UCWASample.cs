@@ -32,6 +32,12 @@ namespace TestClient
             client.GroupDeletedFromMyGroups += Client_GroupDeletedFromMyGroups;
 
             Signin(TokenService.username, TokenService.password);
+            AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload; ;
+        }
+        
+        private void CurrentDomain_DomainUnload(object sender, EventArgs e)
+        {
+            client.Dispose();
         }
 
         public void Run()

@@ -2,6 +2,7 @@
 {
     /// <summary>
     /// Error Subcodes
+    /// https://msdn.microsoft.com/en-us/skype/ucwa/errorsubcode_ref
     /// </summary>
     public enum ErrorSubCode
     {
@@ -30,9 +31,21 @@
         /// </summary>
         AttendeeNotAllowed,
         /// <summary>
+        /// The invitation was auto-accepted.
+        /// </summary>
+        AutoAccepted,
+        /// <summary>
         /// Remote side is busy and cannot fullfill request.
         /// </summary>
         Busy,
+        /// <summary>
+        /// CallbackUri supplied by the application could not be reached.
+        /// </summary>
+        CallbackUriUnreachable,
+        /// <summary>
+        /// Call is terminated.
+        /// </summary>
+        CallTerminated,
         /// <summary>
         /// Canceled.
         /// </summary>
@@ -41,6 +54,10 @@
         /// Call is connected elsewhere.
         /// </summary>
         ConnectedElsewhere,
+        /// <summary>
+        /// The conversation does not exist.
+        /// </summary>
+        ConversationNotFound,
         /// <summary>
         /// CallDeclined.
         /// </summary>
@@ -86,6 +103,10 @@
         /// </summary>
         EscalationFailed,
         /// <summary>
+        /// The Exchange request timed out
+        /// </summary>
+        ExchangeTimeout,
+        /// <summary>
         /// The parked audiovideo session was terminated due to timeout.
         /// </summary>
         Expired,
@@ -93,6 +114,10 @@
         /// Federation is required.
         /// </summary>
         FederationRequired,
+        /// <summary>
+        /// Call Forwarded Locally
+        /// </summary>
+        Forwarded,
         /// <summary>
         /// Inactive application expired.
         /// </summary>
@@ -117,6 +142,10 @@
         /// A server defined limit was exceeded.
         /// </summary>
         LimitExceeded,
+        /// <summary>
+        /// Location Information Service is unavailable
+        /// </summary>
+        LisServiceUnavailable,
         /// <summary>
         /// The MakeMeAvailable operation is a prerequisite for this operation.
         /// </summary>
@@ -146,6 +175,18 @@
         /// </summary>
         Missed,
         /// <summary>
+        /// Media negotiation request failed.
+        /// </summary>
+        MediaNegotiationFailure,
+        /// <summary>
+        /// Media negotiation request timed out.
+        /// </summary>
+        MediaNegotiationTimeOut,
+        /// <summary>
+        /// There is a migration in progress, contact's buddy list is read-only.
+        /// </summary>
+        MigrationInProgress,
+        /// <summary>
         /// Modality not supported.
         /// </summary>
         ModalityNotSupported,
@@ -162,6 +203,10 @@
         /// </summary>
         NormalizationFailed,
         /// <summary>
+        /// LIS could not find a matched location
+        /// </summary>
+        NoLocationFound,
+        /// <summary>
         /// The remote client is unable to accept the call at this time or context.
         /// </summary>
         NotAcceptable,
@@ -174,6 +219,10 @@
         /// </summary>
         NoTeamMembersConfigured,
         /// <summary>
+        /// The specified operation is not supported right now
+        /// </summary>
+        OperationNotSupported,
+        /// <summary>
         /// The message content type was invalid.
         /// </summary>
         ParameterValidationFailure,
@@ -185,6 +234,14 @@
         /// Invitation failed because multiple users are associated with the destination phone number.
         /// </summary>
         PhoneNumberConflict,
+        /// <summary>
+        ///Provisioning data could not be retrieved
+        /// </summary>
+        ProvisioningDataUnavailable,
+        /// <summary>
+        ///The attempt to reach mobile user's simulring number failed.
+        /// </summary>
+        PstnCallFailed,
         /// <summary>
         /// Indicates that the invitation was redirected to another participant.
         /// </summary>
@@ -226,6 +283,14 @@
         /// </summary>
         TooManyContacts,
         /// <summary>
+        /// User has exceeded max conversations.
+        /// </summary>
+        TooManyConversations,
+        /// <summary>
+        /// There are too many groups.
+        /// </summary>
+        TooManyGroups,
+        /// <summary>
         /// Too many lobby participants.
         /// </summary>
         TooManyLobbyParticipants,
@@ -238,9 +303,17 @@
         /// </summary>
         TooManyParticipants,
         /// <summary>
+        /// The call transfer reqeust is declined at transferee side.
+        /// </summary>
+        TransferDeclined,
+        /// <summary>
         /// Call Transferred.
         /// </summary>
         Transferred,
+        /// <summary>
+        /// The call initiated from transferee gets declined at transfer target side.
+        /// </summary>
+        TransferTargetDeclined,
         /// <summary>
         /// No Mcu is available via the MCU factory.
         /// </summary>

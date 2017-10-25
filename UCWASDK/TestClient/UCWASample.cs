@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA;
 using Microsoft.Skype.UCWA.Enums;
 using Microsoft.Skype.UCWA.Models;
+using Microsoft.Skype.UCWA.RetryPolicies;
 using System;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -14,7 +15,8 @@ namespace TestClient
 
         public UCWASample()
         {
-            client = new UCWAClient();
+            // Instantiate UCWA Client by setting retry policy.
+            client = new UCWAClient(new LinearTransientErrorHandlingPolicy(1000, 10));
             client.SendingRequest += (client, resource) => { client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TokenService.AquireAADToken(resource)); };
 
             client.ContactPresenceUpdated += Client_ContactPresenceUpdated;
@@ -30,6 +32,12 @@ namespace TestClient
             client.GroupDeletedFromMyGroups += Client_GroupDeletedFromMyGroups;
 
             Signin(TokenService.username, TokenService.password);
+            AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload; ;
+        }
+        
+        private void CurrentDomain_DomainUnload(object sender, EventArgs e)
+        {
+            client.Dispose();
         }
 
         public void Run()

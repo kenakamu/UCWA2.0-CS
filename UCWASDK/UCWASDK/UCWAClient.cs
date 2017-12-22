@@ -662,9 +662,10 @@ namespace Microsoft.Skype.UCWA
         /// </summary>
         /// <param name="tenant">Office 365 tenant name</param>
         /// <returns></returns>
-        public async Task<bool> Initialize(string tenant)
+        public async Task<bool> Initialize(string tenant, bool isOffice365PublicTenant = true)
         {
             Settings.Tenant = tenant;
+            Settings.IsOffice365PublicTenant = isOffice365PublicTenant;
             return await CreateApplication();
         }
 
@@ -986,14 +987,15 @@ namespace Microsoft.Skype.UCWA
 
         private async Task<User> GetUserDiscoverUri()
         {
-            using (HttpClient client = new HttpClient())
+            using (var client = new HttpClient())
             {
+                client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
                 HttpResponseMessage response = null;
                 try
                 {
                     try
                     {
-                        response = await client.GetAsync($"https://lyncdiscoverinternal.{Settings.Tenant}");
+                        response = await client.GetAsync(Settings.IsOffice365PublicTenant ? $"https://webdir.online.lync.com/Autodiscover/AutodiscoverService.svc/root?originalDomain={Settings.Tenant}" : $"https://lyncdiscoverinternal.{Settings.Tenant}");
                     }
                     catch
                     {
@@ -1022,10 +1024,7 @@ namespace Microsoft.Skype.UCWA
                 {
                     var root = JsonConvert.DeserializeObject<Root>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Include });
                     var redirect = await root.GetRedirect();
-                    if (redirect != null)
-                        return await redirect.GetUser();
-                    else
-                        return await root.GetUser();
+                    return await (redirect?.GetUser() ?? root.GetUser());
                 }
                 else
                     return null;

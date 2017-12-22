@@ -335,7 +335,7 @@ namespace Microsoft.Skype.UCWA.Services
             }
 
             // Get Token everytime via ADAL
-            if (!anonymous)
+            if (!anonymous && client.DefaultRequestHeaders.Authorization == null)
                 await Settings.UCWAClient.GetToken(client, uri);
             return client;
         }

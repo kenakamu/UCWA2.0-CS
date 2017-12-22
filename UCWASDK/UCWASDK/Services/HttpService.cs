@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,7 +21,7 @@ namespace Microsoft.Skype.UCWA.Services
         // Store HttpClient per request Uri
         static ConcurrentDictionary<string, HttpClient> clientPool = new ConcurrentDictionary<string, HttpClient>();
         static private ExceptionMappingService exceptionMappingService = new ExceptionMappingService();
-        
+
         static public async Task<T> Get<T>(UCWAHref href, string version = "2.0") where T : UCWAModelBase
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
@@ -32,7 +31,7 @@ namespace Microsoft.Skype.UCWA.Services
         }
         static public async Task<List<T>> GetList<T>(UCWAHref[] hrefs, string version = "2.0") where T : UCWAModelBase
         {
-            if (hrefs == null || hrefs.Count() == 0)
+            if (hrefs == null || !hrefs.Any())
                 return null;
 
             List<T> list = new List<T>();
@@ -281,7 +280,7 @@ namespace Microsoft.Skype.UCWA.Services
                 foreach (var jtoken in jToken as JArray) { GetPGuid(jtoken); }
             else
             {
-                var pGuidObj = jToken.Values().Where(x => x.ToString() == "please pass this in a PUT request").FirstOrDefault();
+                var pGuidObj = jToken.Values().FirstOrDefault(x => x.ToString() == "please pass this in a PUT request");
                 if (pGuidObj != null)
                     jToken["pGuid"] = (pGuidObj.Parent as JProperty).Name;
                 if (jToken["_embedded"] != null)
@@ -304,22 +303,10 @@ namespace Microsoft.Skype.UCWA.Services
                 // If we want to consider concurrency in the future, we may implement lock, but as this is client library, I just keep it simple at the moment.
                 client = new HttpClient();
                 client.DefaultRequestHeaders.TryAddWithoutValidation("X-MS-RequiresMinResourceVersion", version);
-                try
+                if (!clientPool.TryAdd(hostname, client))
                 {
-                    if (!clientPool.TryAdd(hostname, client))
-                    {
-                        // As the pool contains the key already, get the HttpClient from the pool.
-                        client = clientPool[hostname];
-                    }
-                }
-                catch (OverflowException)
-                {
-                    // The dictionary already contains the maximum number of elements(MaxValue)
-                    throw;
-                }
-                catch(Exception)
-                {
-                    throw;
+                    // As the pool contains the key already, get the HttpClient from the pool.
+                    client = clientPool[hostname];
                 }
             }
 

@@ -13,7 +13,6 @@ namespace Microsoft.Skype.UCWA.Services
 {
     internal class ExceptionMappingService
     {
-        private const string authenticationHeaderKey = "WWW-Authenticate";
         private const string matchKeyKey = "key";
         private const string matchValueKey = "value";
         private const string trustedIssuersKey = "trusted_issuers";

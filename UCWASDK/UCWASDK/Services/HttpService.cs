@@ -45,13 +45,17 @@ namespace Microsoft.Skype.UCWA.Services
         {
             uri = EnsureUriContainsHttp(uri);
 
-            var client = await GetClient(uri, version, anonymous);
-            return await ExecuteHttpCallAndRetry(() => client.GetAsync(uri), async (response) =>
+            return await ExecuteHttpCallAndRetry(() => GetInternal(uri, version, anonymous), async (response) =>
                 {
                     var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
                     GetPGuid(jObject as JToken);
                     return JsonConvert.DeserializeObject<T>(jObject.ToString());
                 });
+        }
+        static public async Task<HttpResponseMessage> GetInternal(string uri, string version = defaultVersion, bool anonymous = false)
+        {
+            var client = await GetClient(uri, version, anonymous);
+            return await client.GetAsync(uri);
         }
         static public async Task<byte[]> GetBinary(UCWAHref href, string version = defaultVersion, bool anonymous = false)
         {
@@ -60,8 +64,7 @@ namespace Microsoft.Skype.UCWA.Services
 
             var uri = EnsureUriContainsHttp(href.Href);
 
-            var client = await GetClient(uri, version, anonymous);
-            return await ExecuteHttpCallAndRetry(() => client.GetAsync(uri), async (response) =>
+            return await ExecuteHttpCallAndRetry(() => GetInternal(uri, version, anonymous), async (response) =>
             {
                 return await response.Content.ReadAsByteArrayAsync();
             });
@@ -119,15 +122,18 @@ namespace Microsoft.Skype.UCWA.Services
 
             uri = EnsureUriContainsHttp(uri);
 
+            await ExecuteHttpCallAndRetry(() => DeleteInternal(uri, version, anonymous));
+        }
+        static public async Task<HttpResponseMessage> DeleteInternal(string uri, string version = defaultVersion, bool anonymous = false)
+        {
             var client = await GetClient(uri, version, anonymous);
-            await ExecuteHttpCallAndRetry(() => client.DeleteAsync(uri));
+            return await client.DeleteAsync(uri);
         }
         static public void DisposeHttpClients()
         {
             foreach (var client in clientPool.Values)
-            {
                 client.Dispose();
-            }
+            clientPool.Clear();
             AnonymousHttpClient?.Dispose();
         }
 
@@ -210,6 +216,11 @@ namespace Microsoft.Skype.UCWA.Services
                 }
                 catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
                 {
+                    if (ex is AuthenticationExpiredException)
+                    {
+                        DisposeHttpClients();
+                        AnonymousHttpClient = new HttpClient();
+                    }
                     lastException = ex;// memorizing the last transient exception in case we still encounter it but run out of retries
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
@@ -235,6 +246,11 @@ namespace Microsoft.Skype.UCWA.Services
                 }
                 catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
                 {
+                    if (ex is AuthenticationExpiredException)
+                    {
+                        DisposeHttpClients();
+                        AnonymousHttpClient = new HttpClient();
+                    }
                     lastException = ex;// memorizing the last transient exception in case we still encounter it but run out of retries
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
@@ -261,6 +277,11 @@ namespace Microsoft.Skype.UCWA.Services
                 }
                 catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
                 {
+                    if(ex is AuthenticationExpiredException)
+                    {
+                        DisposeHttpClients();
+                        AnonymousHttpClient = new HttpClient();
+                    }
                     lastException = ex;// memorizing the last transient exception in case we still encounter it but run out of retries
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;

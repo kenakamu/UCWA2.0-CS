@@ -3,6 +3,7 @@ using Microsoft.Skype.UCWA.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -18,19 +19,22 @@ namespace Microsoft.Skype.UCWA.Services
         private const string trustedIssuersKey = "trusted_issuers";
         private const string clientIdKey = "client_id";
         private const string grantTypeKey = "grant_type";
-        private const string oAuthKey = "href";
-        private static Regex authenticationMatchingRegex = new Regex($@"(?<{matchKeyKey}>[\w]+)=""(?<{matchValueKey}>[\w -@\.:/,] +)""");
+        private const string tokenKey = "href";
+        private const string authorizationKey = "authorization_uri";
+        private static Regex authenticationMatchingRegex = new Regex($@"(?<{matchKeyKey}>[\w]+)=""(?<{matchValueKey}>[\w -@\.:/,\*]+)""?");
         private Dictionary<string, string> getAuthenticationHeaderValues(HttpResponseHeaders headers)
         {
             var value = new Dictionary<string, string>();
-            foreach (var authenticateHeaderValue in headers.GetValues(authenticationHeaderKey))
+            var matches = headers.WwwAuthenticate.SelectMany( x => x.Parameter.Split(new string[] { "\"," }, StringSplitOptions.RemoveEmptyEntries)).Select(x => authenticationMatchingRegex.Match(x)).Where(x => x.Success);
+            foreach (var match in matches)
             {
-                var match = authenticationMatchingRegex.Match(authenticateHeaderValue);
-                while (match.Success)
+                var mtch = match;
+                do
                 {
                     value.Add(match.Groups[matchKeyKey].Value, match.Groups[matchValueKey].Value);
-                    match = match.NextMatch();
+                    mtch = mtch.NextMatch();
                 }
+                while (mtch.Success);
             }
             return value;
         }
@@ -67,7 +71,7 @@ namespace Microsoft.Skype.UCWA.Services
                 #endregion
                 #region nontransient
                 case HttpStatusCode.Unauthorized:
-                    if (response.Headers.Contains(authenticationHeaderKey))
+                    if (response.Headers.WwwAuthenticate.Any())
                     {
                         var authenticationHeaderValues = getAuthenticationHeaderValues(response.Headers);
                         return new AuthenticationExpiredException(reason?.Message ?? error)
@@ -76,8 +80,9 @@ namespace Microsoft.Skype.UCWA.Services
                             IsTransient = true,
                             ClientId = authenticationHeaderValues[clientIdKey],
                             GrantType = authenticationHeaderValues[grantTypeKey],
-                            OAuthUri = authenticationHeaderValues[oAuthKey],
-                            TrustedIssuers = authenticationHeaderValues[trustedIssuersKey]
+                            TokenUri = authenticationHeaderValues[tokenKey],
+                            TrustedIssuers = authenticationHeaderValues[trustedIssuersKey],
+                            AuthorizationUri = authenticationHeaderValues[authorizationKey],
                         };
                     }
                     else

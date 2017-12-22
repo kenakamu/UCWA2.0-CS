@@ -21,7 +21,19 @@ namespace Microsoft.Skype.UCWA.Services
         private const string defaultVersion = "2.0";
         // Store HttpClient per request Uri
         static ConcurrentDictionary<string, HttpClient> clientPool = new ConcurrentDictionary<string, HttpClient>();
-        static HttpClient AnonymousHttpClient = new HttpClient();
+        static HttpClient _anonymousHttpClient;
+        static HttpClient AnonymousHttpClient
+        {
+            get
+            {
+                if(_anonymousHttpClient == null)
+                {
+                    _anonymousHttpClient = new HttpClient();
+                    _anonymousHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
+                }
+                return _anonymousHttpClient;
+            }
+        }
         static private ExceptionMappingService exceptionMappingService = new ExceptionMappingService();
 
         static public async Task<T> Get<T>(UCWAHref href, string version = defaultVersion, bool anonymous = false) where T : UCWAModelBase
@@ -134,7 +146,8 @@ namespace Microsoft.Skype.UCWA.Services
             foreach (var client in clientPool.Values)
                 client.Dispose();
             clientPool.Clear();
-            AnonymousHttpClient?.Dispose();
+            _anonymousHttpClient?.Dispose();
+            _anonymousHttpClient = null;
         }
 
         static private string EnsureUriContainsHttp(string uri)
@@ -217,10 +230,7 @@ namespace Microsoft.Skype.UCWA.Services
                 catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
                 {
                     if (ex is AuthenticationExpiredException)
-                    {
                         DisposeHttpClients();
-                        AnonymousHttpClient = new HttpClient();
-                    }
                     lastException = ex;// memorizing the last transient exception in case we still encounter it but run out of retries
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
@@ -247,10 +257,7 @@ namespace Microsoft.Skype.UCWA.Services
                 catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
                 {
                     if (ex is AuthenticationExpiredException)
-                    {
                         DisposeHttpClients();
-                        AnonymousHttpClient = new HttpClient();
-                    }
                     lastException = ex;// memorizing the last transient exception in case we still encounter it but run out of retries
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
@@ -277,11 +284,8 @@ namespace Microsoft.Skype.UCWA.Services
                 }
                 catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
                 {
-                    if(ex is AuthenticationExpiredException)
-                    {
+                    if (ex is AuthenticationExpiredException)
                         DisposeHttpClients();
-                        AnonymousHttpClient = new HttpClient();
-                    }
                     lastException = ex;// memorizing the last transient exception in case we still encounter it but run out of retries
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
@@ -339,7 +343,6 @@ namespace Microsoft.Skype.UCWA.Services
                 await Settings.UCWAClient.GetToken(client, uri);
             return client;
         }
-
         private static void AddResourcesVersionValidation(string version, HttpClient client)
         {
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-MS-RequiresMinResourceVersion", version);

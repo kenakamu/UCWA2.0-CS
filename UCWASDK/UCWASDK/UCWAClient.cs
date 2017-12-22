@@ -683,22 +683,22 @@ namespace Microsoft.Skype.UCWA
             bool supportPlainText, bool supportHtmlFormat, string phoneNumber, bool keepAlive)
         {
             if (application == null)
-                throw new InvalidOperationException("You need to initialize and subscribe the event before starting.");
+                throw new Exception("You need to initialize and subscribe the event before starting.");
 
             await application.Me.MakeMeAvailable(availability, supportMessage, supportAudio, supportPlainText, supportHtmlFormat, phoneNumber);
             application = await application.Get();
 
             if (keepAlive)
-                Parallel.Invoke(async () => await KeepAlive(60));
+                KeepAlive(60);
 
-            Parallel.Invoke(async () => await MonitorEvent());
+            MonitorEvent();
         }
 
         /// <summary>
         /// Keep the status by sending ReportActivity.
         /// </summary>
         /// <param name="durationInSeconds">Interval to send ReportActivity in seconds. Default value is 60.</param>
-        private async Task KeepAlive(int durationInSeconds = 60)
+        private async void KeepAlive(int durationInSeconds = 60)
         {
             while (Me != null)
             {
@@ -739,7 +739,7 @@ namespace Microsoft.Skype.UCWA
             PresenceSubscriptions presenceSubscriptions = await application.People.GetPresenceSubscriptions();
             foreach (var sip in sips)
             {
-                PresenceSubscription presenceSubscription = presenceSubscriptions.Subscriptions.FirstOrDefault(x => x.Id == sip);
+                PresenceSubscription presenceSubscription = presenceSubscriptions.Subscriptions.Where(x => x.Id == sip).FirstOrDefault();
                 if (presenceSubscription != null)
                     await presenceSubscription.Delete();
             }
@@ -800,8 +800,8 @@ namespace Microsoft.Skype.UCWA
                 return null;
 
             Conversation conversation = string.IsNullOrEmpty(subject) ?
-                convs.FirstOrDefault(x => x.Title.ToLower() == title.ToLower()) :
-                convs.FirstOrDefault(x => x.Subject.ToLower() == subject.ToLower());
+                convs.Where(x => x.Title.ToLower() == title.ToLower()).FirstOrDefault() :
+                convs.Where(x => x.Subject.ToLower() == subject.ToLower()).FirstOrDefault();
 
             return conversation;
         }
@@ -826,7 +826,7 @@ namespace Microsoft.Skype.UCWA
         /// <returns></returns>
         public async Task StartOnlineMeeting(string subject, Importance importance = Importance.Normal)
         {
-            await application.Communication.StartOnlineMeeting(subject, importance);
+            string location = await application.Communication.StartOnlineMeeting(subject, importance);
         }
 
         /// <summary>
@@ -971,17 +971,24 @@ namespace Microsoft.Skype.UCWA
 
         private async Task<bool> CreateApplication(string agentName = "myAgent", string language = "en-US")
         {
-            User user = await GetUserDiscoverUri();
-            if (user == null)
-                return false;
+            try
+            {
+                User user = await GetUserDiscoverUri();
+                if (user == null)
+                    return false;
 
-            application = await user.CreateApplication(agentName, Guid.NewGuid().ToString(), language);
+                application = await user.CreateApplication(agentName, Guid.NewGuid().ToString(), language);
 
-            // Get host address
-            Settings.Host = new Uri(user.Self).Scheme + "://" + new Uri(user.Self).Host;
+                // Get host address
+                Settings.Host = new Uri(user.Self).Scheme + "://" + new Uri(user.Self).Host;
 
-            eventUri = application.Links.Events;
-            return true;
+                eventUri = application.Links.Events;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         private async Task<User> GetUserDiscoverUri()
@@ -1018,6 +1025,10 @@ namespace Microsoft.Skype.UCWA
                         throw;
                     }
                 }
+                catch (Exception ex)
+                {
+                    throw;
+                }
                 if (response.IsSuccessStatusCode)
                 {
                     var root = JsonConvert.DeserializeObject<Root>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Include });
@@ -1044,8 +1055,14 @@ namespace Microsoft.Skype.UCWA
 
         private async Task<UCWAEvent> GetEvent()
         {
-            while (!string.IsNullOrEmpty(eventUri))
-                using (var client = new HttpClient())
+            while (true)
+            {
+                if (string.IsNullOrEmpty(eventUri))
+                {
+                    return null;
+                }
+                using (HttpClient client = new HttpClient())
+                {
                     try
                     {
                         var ucwaEvent = await HttpService.Get<UCWAEvent>(eventUri);
@@ -1053,23 +1070,28 @@ namespace Microsoft.Skype.UCWA
                         if (ucwaEvent == null)
                             await Task.Delay(1000);
 
-                        if (!string.IsNullOrEmpty(ucwaEvent?.Links?.Resync))
+                        if (!string.IsNullOrEmpty(ucwaEvent.Links.Resync))
                         {
                             eventUri = ucwaEvent.Links.Resync;
                             ucwaEvent = await GetEvent();
                         }
 
-                        eventUri = ucwaEvent?.Links?.Next;
+                        eventUri = ucwaEvent.Links.Next;
                         return ucwaEvent;
                     }
-                    catch (TaskCanceledException)
+                    catch (TaskCanceledException ex)
                     {
                         await Task.Delay(1000);
                     }
-            return null;
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
+                }
+            }
         }
 
-        private async Task MonitorEvent()
+        private async void MonitorEvent()
         {
             while (true)
             {

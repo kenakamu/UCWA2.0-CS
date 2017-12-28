@@ -35,7 +35,7 @@ namespace Microsoft.Skype.UCWA.Models
         internal InternalEmbedded Embedded { get; set; }
 
         [JsonIgnore]
-        public DialInRegion[] DialInRegion { get { return Embedded.dialInRegion; } }
+        public DialInRegion[] DialInRegion { get { return Embedded?.dialInRegion; } }
 
         internal class InternalEmbedded
         {

@@ -194,5 +194,20 @@ namespace Microsoft.Skype.UCWA.Models
         private bool _isTransient;
         public bool IsTransient { get => _isTransient; set => _isTransient = value; }
     }
-
+    public class AuthenticationExpiredException : Exception, IUCWAException
+    {
+        public override string Message { get { return $"Authentication information : {nameof(TrustedIssuers)} {TrustedIssuers}, {nameof(ClientId)} {ClientId}, {nameof(GrantType)} {GrantType}, {nameof(TokenUri)} {TokenUri}, {nameof(AuthorizationUri)} {AuthorizationUri}, {base.Message}"; } }
+        public AuthenticationExpiredException() : base() { }
+        public AuthenticationExpiredException(string message) : base(message) { }
+        public AuthenticationExpiredException(string message, Exception innerException) : base(message, innerException) { }
+        private Reason _reason;
+        public Reason Reason { get => _reason; set => _reason = value; }
+        private bool _isTransient;
+        public bool IsTransient { get => _isTransient; set => _isTransient = value; }
+        public string TrustedIssuers { get; internal set; }
+        public string ClientId { get; internal set; }
+        public string TokenUri { get; internal set; }
+        public string GrantType { get; internal set; }
+        public string AuthorizationUri { get; internal set; }
+    }
 }

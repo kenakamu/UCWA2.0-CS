@@ -662,9 +662,10 @@ namespace Microsoft.Skype.UCWA
         /// </summary>
         /// <param name="tenant">Office 365 tenant name</param>
         /// <returns></returns>
-        public async Task<bool> Initialize(string tenant)
+        public async Task<bool> Initialize(string tenant, bool isOffice365PublicTenant = true)
         {
             Settings.Tenant = tenant;
+            Settings.IsOffice365PublicTenant = isOffice365PublicTenant;
             return await CreateApplication();
         }
 
@@ -683,22 +684,22 @@ namespace Microsoft.Skype.UCWA
             bool supportPlainText, bool supportHtmlFormat, string phoneNumber, bool keepAlive)
         {
             if (application == null)
-                throw new Exception("You need to initialize and subscribe the event before starting.");
+                throw new InvalidOperationException("You need to initialize and subscribe the event before starting.");
 
             await application.Me.MakeMeAvailable(availability, supportMessage, supportAudio, supportPlainText, supportHtmlFormat, phoneNumber);
             application = await application.Get();
 
             if (keepAlive)
-                KeepAlive(60);
+                Parallel.Invoke(async () => await KeepAlive(60));
 
-            MonitorEvent();
+            Parallel.Invoke(async () => await MonitorEvent());
         }
 
         /// <summary>
         /// Keep the status by sending ReportActivity.
         /// </summary>
         /// <param name="durationInSeconds">Interval to send ReportActivity in seconds. Default value is 60.</param>
-        private async void KeepAlive(int durationInSeconds = 60)
+        private async Task KeepAlive(int durationInSeconds = 60)
         {
             while (Me != null)
             {
@@ -739,7 +740,7 @@ namespace Microsoft.Skype.UCWA
             PresenceSubscriptions presenceSubscriptions = await application.People.GetPresenceSubscriptions();
             foreach (var sip in sips)
             {
-                PresenceSubscription presenceSubscription = presenceSubscriptions.Subscriptions.Where(x => x.Id == sip).FirstOrDefault();
+                PresenceSubscription presenceSubscription = presenceSubscriptions.Subscriptions.FirstOrDefault(x => x.Id == sip);
                 if (presenceSubscription != null)
                     await presenceSubscription.Delete();
             }
@@ -800,8 +801,8 @@ namespace Microsoft.Skype.UCWA
                 return null;
 
             Conversation conversation = string.IsNullOrEmpty(subject) ?
-                convs.Where(x => x.Title.ToLower() == title.ToLower()).FirstOrDefault() :
-                convs.Where(x => x.Subject.ToLower() == subject.ToLower()).FirstOrDefault();
+                convs.FirstOrDefault(x => x.Title.ToLower() == title.ToLower()) :
+                convs.FirstOrDefault(x => x.Subject.ToLower() == subject.ToLower());
 
             return conversation;
         }
@@ -826,7 +827,7 @@ namespace Microsoft.Skype.UCWA
         /// <returns></returns>
         public async Task StartOnlineMeeting(string subject, Importance importance = Importance.Normal)
         {
-            string location = await application.Communication.StartOnlineMeeting(subject, importance);
+            await application.Communication.StartOnlineMeeting(subject, importance);
         }
 
         /// <summary>
@@ -971,36 +972,30 @@ namespace Microsoft.Skype.UCWA
 
         private async Task<bool> CreateApplication(string agentName = "myAgent", string language = "en-US")
         {
-            try
-            {
-                User user = await GetUserDiscoverUri();
-                if (user == null)
-                    return false;
+            User user = await GetUserDiscoverUri();
+            if (user == null)
+                return false;
 
-                application = await user.CreateApplication(agentName, Guid.NewGuid().ToString(), language);
+            application = await user.CreateApplication(agentName, Guid.NewGuid().ToString(), language);
 
-                // Get host address
-                Settings.Host = new Uri(user.Self).Scheme + "://" + new Uri(user.Self).Host;
+            // Get host address
+            Settings.Host = new Uri(user.Self).Scheme + "://" + new Uri(user.Self).Host;
 
-                eventUri = application.Links.Events;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            eventUri = application.Links.Events;
+            return true;
         }
 
         private async Task<User> GetUserDiscoverUri()
         {
-            using (HttpClient client = new HttpClient())
+            using (var client = new HttpClient())
             {
+                client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
                 HttpResponseMessage response = null;
                 try
                 {
                     try
                     {
-                        response = await client.GetAsync($"https://lyncdiscoverinternal.{Settings.Tenant}");
+                        response = await client.GetAsync(Settings.IsOffice365PublicTenant ? $"https://webdir.online.lync.com/Autodiscover/AutodiscoverService.svc/root?originalDomain={Settings.Tenant}" : $"https://lyncdiscoverinternal.{Settings.Tenant}");
                     }
                     catch
                     {
@@ -1025,18 +1020,11 @@ namespace Microsoft.Skype.UCWA
                         throw;
                     }
                 }
-                catch (Exception ex)
-                {
-                    throw;
-                }
                 if (response.IsSuccessStatusCode)
                 {
                     var root = JsonConvert.DeserializeObject<Root>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Include });
                     var redirect = await root.GetRedirect();
-                    if (redirect != null)
-                        return await redirect.GetUser();
-                    else
-                        return await root.GetUser();
+                    return await (redirect?.GetUser() ?? root.GetUser());
                 }
                 else
                     return null;
@@ -1055,14 +1043,8 @@ namespace Microsoft.Skype.UCWA
 
         private async Task<UCWAEvent> GetEvent()
         {
-            while (true)
-            {
-                if (string.IsNullOrEmpty(eventUri))
-                {
-                    return null;
-                }
-                using (HttpClient client = new HttpClient())
-                {
+            while (!string.IsNullOrEmpty(eventUri))
+                using (var client = new HttpClient())
                     try
                     {
                         var ucwaEvent = await HttpService.Get<UCWAEvent>(eventUri);
@@ -1070,28 +1052,23 @@ namespace Microsoft.Skype.UCWA
                         if (ucwaEvent == null)
                             await Task.Delay(1000);
 
-                        if (!string.IsNullOrEmpty(ucwaEvent.Links.Resync))
+                        if (!string.IsNullOrEmpty(ucwaEvent?.Links?.Resync))
                         {
                             eventUri = ucwaEvent.Links.Resync;
                             ucwaEvent = await GetEvent();
                         }
 
-                        eventUri = ucwaEvent.Links.Next;
+                        eventUri = ucwaEvent?.Links?.Next;
                         return ucwaEvent;
                     }
-                    catch (TaskCanceledException ex)
+                    catch (TaskCanceledException)
                     {
                         await Task.Delay(1000);
                     }
-                    catch (Exception ex)
-                    {
-                        throw ex;
-                    }
-                }
-            }
+            return null;
         }
 
-        private async void MonitorEvent()
+        private async Task MonitorEvent()
         {
             while (true)
             {

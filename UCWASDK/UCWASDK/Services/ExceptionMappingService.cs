@@ -2,13 +2,41 @@
 using Microsoft.Skype.UCWA.Models;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.Skype.UCWA.Services
 {
     internal class ExceptionMappingService
     {
+        private const string matchKeyKey = "key";
+        private const string matchValueKey = "value";
+        private const string trustedIssuersKey = "trusted_issuers";
+        private const string clientIdKey = "client_id";
+        private const string grantTypeKey = "grant_type";
+        private const string tokenKey = "href";
+        private const string authorizationKey = "authorization_uri";
+        private static Regex authenticationMatchingRegex = new Regex($@"(?<{matchKeyKey}>[\w]+)=""(?<{matchValueKey}>[\w -@\.:/,\*]+)""?");
+        private Dictionary<string, string> getAuthenticationHeaderValues(HttpResponseHeaders headers)
+        {
+            var value = new Dictionary<string, string>();
+            var matches = headers.WwwAuthenticate.SelectMany( x => x.Parameter.Split(new string[] { "\"," }, StringSplitOptions.RemoveEmptyEntries)).Select(x => authenticationMatchingRegex.Match(x)).Where(x => x.Success);
+            foreach (var match in matches)
+            {
+                var mtch = match;
+                do
+                {
+                    value.Add(match.Groups[matchKeyKey].Value, match.Groups[matchValueKey].Value);
+                    mtch = mtch.NextMatch();
+                }
+                while (mtch.Success);
+            }
+            return value;
+        }
         internal Exception GetExceptionFromHttpStatusCode(HttpResponseMessage response, string error)
         {// we can start by guessing what kind of error it is by relying on the protocol first https://ucwa.skype.com/documentation/ProgrammingConcepts-Errors
             var reason = TryDeserializeReason(error);
@@ -41,6 +69,23 @@ namespace Microsoft.Skype.UCWA.Services
                     return new PreconditionFailedException(reason?.Message ?? error) { Reason = reason, IsTransient = false };
                 #endregion
                 #region nontransient
+                case HttpStatusCode.Unauthorized:
+                    if (response.Headers.WwwAuthenticate.Any())
+                    {
+                        var authenticationHeaderValues = getAuthenticationHeaderValues(response.Headers);
+                        return new AuthenticationExpiredException(reason?.Message ?? error)
+                        {
+                            Reason = reason,
+                            IsTransient = true,
+                            ClientId = authenticationHeaderValues[clientIdKey],
+                            GrantType = authenticationHeaderValues[grantTypeKey],
+                            TokenUri = authenticationHeaderValues[tokenKey],
+                            TrustedIssuers = authenticationHeaderValues[trustedIssuersKey],
+                            AuthorizationUri = authenticationHeaderValues[authorizationKey],
+                        };
+                    }
+                    else
+                        return new UnauthorizedAccessException(error);
                 case HttpStatusCode.Forbidden:
                     return new UnauthorizedAccessException(error);
                 case HttpStatusCode.RequestEntityTooLarge:

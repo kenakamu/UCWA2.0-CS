@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Microsoft.Skype.UCWA.Services
+﻿namespace Microsoft.Skype.UCWA.Services
 {
     static class Settings
     {
@@ -14,5 +8,6 @@ namespace Microsoft.Skype.UCWA.Services
         public static string Password { get; set; }
         public static string ClientId { get; set; }
         public static UCWAClient UCWAClient { get; set; }
+        public static bool IsOffice365PublicTenant { get; internal set; }
     }
 }

@@ -23,17 +23,17 @@ namespace Microsoft.Skype.UCWA.Models
 
             [JsonProperty("redirect")]
             internal UCWAHref redirect { get; set; }
-       
+
             [JsonProperty("user")]
             internal UCWAHref user { get; set; }
-       
+
             [JsonProperty("xframe")]
             internal UCWAHref xframe { get; set; }
         }
 
         public async Task<Redirect> GetRedirect()
         {
-            return Links.redirect == null ? null : await HttpService.Get<Redirect>(Links.redirect);
+            return Links.redirect == null ? null : await HttpService.Get<Redirect>(Links.redirect, anonymous: true);
         }
 
         public async Task<User> GetUser()

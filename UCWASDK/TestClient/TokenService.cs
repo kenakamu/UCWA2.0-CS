@@ -50,7 +50,7 @@ namespace TestClient
                 // Get OAuth service url
                 var response = client.GetAsync(resourceId).Result;
                 var wwwAuthenticate = response.Headers.WwwAuthenticate;
-                var uri = wwwAuthenticate.Where(x => x.Scheme == "MsRtcOAuth").First().Parameter.Split(',').Where(y => y.Contains("href")).First().Split('=')[1].Replace("\"", "");
+                var uri = wwwAuthenticate.First(x => x.Scheme == "MsRtcOAuth").Parameter.Split(',').First(y => y.Contains("href")).Split('=')[1].Replace("\"", "");
 
                 // Obtain AccessToken
                 response = client.PostAsync(uri, new FormUrlEncodedContent(new List<KeyValuePair<string, string>>() { new KeyValuePair<string, string>("grant_type", "password"), new KeyValuePair<string, string>("username", username), new KeyValuePair<string, string>("password", password) })).Result;

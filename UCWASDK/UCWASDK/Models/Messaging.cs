@@ -3,6 +3,7 @@ using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -77,9 +78,13 @@ namespace Microsoft.Skype.UCWA.Models
             await HttpService.Post(Links.addMessaging, messagingInvitation);
         }
 
-        public async Task<Conversation> GetConversation()
+        public Task<Conversation> GetConversation()
         {
-            return await HttpService.Get<Conversation>(Links.conversation);
+            return GetConversation(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Conversation> GetConversation(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Conversation>(Links.conversation, cancellationToken);
         }
 
         public async Task SendMessage(string message)

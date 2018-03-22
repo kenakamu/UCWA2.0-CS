@@ -890,72 +890,130 @@ namespace Microsoft.Skype.UCWA
             MyOnlineMeetings myOnlineMeetings = await application.OnlineMeetings.GetMyOnlineMeetings();
             return await myOnlineMeetings.Create(myOnlineMeeting);
         }
-
         /// <summary>
         /// Add instant message capability to existing conversation.
         /// </summary>
         /// <param name="conversation">Conversation to add messaging.</param>
         /// <param name="message">Initial message.</param>
-        public async Task AddMessaging(Conversation conversation, string message = "")
+        public Task AddMessaging(Conversation conversation, string message = "")
         {
-            Messaging messaging = await conversation.GetMessaging();
+            return AddMessaging(conversation, _cancellationTokenSource.Token, message);
+        }
+        /// <summary>
+        /// Add instant message capability to existing conversation.
+        /// </summary>
+        /// <param name="conversation">Conversation to add messaging.</param>
+        /// <param name="message">Initial message.</param>
+        public async Task AddMessaging(Conversation conversation, CancellationToken cancellationToken, string message = "")
+        {
+            Messaging messaging = await conversation.GetMessaging(cancellationToken);
             await messaging?.AddMessaging(MessageFormat.Plain, message);
         }
-
         /// <summary>
         /// Add instant message capability to existing conversation by using OnlineMeetingInvitation.
         /// </summary>
         /// <param name="onlineMeetingInvitation">OnlineMeetingInvitation</param>
         /// <param name="message">Initial message.</param>
-        public async Task AddMessaging(OnlineMeetingInvitation onlineMeetingInvitation, string message = "")
+        public Task AddMessaging(OnlineMeetingInvitation onlineMeetingInvitation, string message = "")
         {
-            Conversation conversation = await onlineMeetingInvitation.GetConversation();
-            Messaging messaging = await conversation?.GetMessaging();
+            return AddMessaging(onlineMeetingInvitation, _cancellationTokenSource.Token, message);
+        }
+        /// <summary>
+        /// Add instant message capability to existing conversation by using OnlineMeetingInvitation.
+        /// </summary>
+        /// <param name="onlineMeetingInvitation">OnlineMeetingInvitation</param>
+        /// <param name="message">Initial message.</param>
+        public async Task AddMessaging(OnlineMeetingInvitation onlineMeetingInvitation, CancellationToken cancellationToken, string message = "")
+        {
+            Conversation conversation = await onlineMeetingInvitation.GetConversation(cancellationToken);
+            Messaging messaging = await conversation?.GetMessaging(cancellationToken);
             await messaging?.AddMessaging(MessageFormat.Plain, message);
         }
-
         /// <summary>
         /// Add a participant to existing conversation.
         /// </summary>
         /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
         /// <param name="conversation">Conversation to add participant.</param>
-        public async Task AddParticipant(string sip, Conversation conversation)
+        public Task AddParticipant(string sip, Conversation conversation)
         {
-            await conversation.AddParticipant(sip);
+            return AddParticipant(sip, conversation, _cancellationTokenSource.Token);
         }
-
+        /// <summary>
+        /// Add a participant to existing conversation.
+        /// </summary>
+        /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
+        /// <param name="conversation">Conversation to add participant.</param>
+        public async Task AddParticipant(string sip, Conversation conversation, CancellationToken cancellationToken)
+        {
+            await conversation.AddParticipant(sip, cancellationToken);
+        }
         /// <summary>
         /// Add a participant to existing conversation by using message.
         /// </summary>
         /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
         /// <param name="message">Message to add participant.</param>
-        public async Task AddParticipant(string sip, Message message)
+        public Task AddParticipant(string sip, Message message)
         {
-            Messaging messaging = await message.GetMessaging();
-            Conversation conversation = await messaging?.GetConversation();
-            await conversation?.AddParticipant(sip);
+            return AddParticipant(sip, message, _cancellationTokenSource.Token);
         }
-
+        /// <summary>
+        /// Add a participant to existing conversation by using message.
+        /// </summary>
+        /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
+        /// <param name="message">Message to add participant.</param>
+        public async Task AddParticipant(string sip, Message message, CancellationToken cancellationToken)
+        {
+            Messaging messaging = await message.GetMessaging(cancellationToken);
+            Conversation conversation = await messaging?.GetConversation(cancellationToken);
+            await conversation?.AddParticipant(sip, cancellationToken);
+        }
         /// <summary>
         /// Add a participant to existing conversation by using onlineMeetingInvitation.
         /// </summary>
         /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
         /// <param name="onlineMeetingInvitation">OnlineMeetingInvitation to add participant.</param>
-        public async Task AddParticipant(string sip, OnlineMeetingInvitation onlineMeetingInvitation)
+        public Task AddParticipant(string sip, OnlineMeetingInvitation onlineMeetingInvitation)
         {
-            Conversation conversation = await onlineMeetingInvitation.GetConversation();
-            await conversation?.AddParticipant(sip);
+            return AddParticipant(sip, onlineMeetingInvitation, _cancellationTokenSource.Token);
         }
-
+        /// <summary>
+        /// Add a participant to existing conversation by using onlineMeetingInvitation.
+        /// </summary>
+        /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
+        /// <param name="onlineMeetingInvitation">OnlineMeetingInvitation to add participant.</param>
+        public async Task AddParticipant(string sip, OnlineMeetingInvitation onlineMeetingInvitation, CancellationToken cancellationToken)
+        {
+            Conversation conversation = await onlineMeetingInvitation.GetConversation(cancellationToken);
+            await conversation?.AddParticipant(sip, cancellationToken);
+        }
         /// <summary>
         /// Add a participant to existing conversation by using MessagingInvitation.
         /// </summary>
         /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
         /// <param name="messagingInvitation">MessagingInvitation to add participant.</param>
-        public async Task AddParticipant(string sip, MessagingInvitation messagingInvitation)
+        public Task AddParticipant(string sip, MessagingInvitation messagingInvitation)
         {
-            Conversation conversation = await messagingInvitation.GetConversation();
-            await conversation.AddParticipant(sip);
+            return AddParticipant(sip, messagingInvitation, _cancellationTokenSource.Token);
+        }
+        /// <summary>
+        /// Add a participant to existing conversation by using MessagingInvitation.
+        /// </summary>
+        /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
+        /// <param name="messagingInvitation">MessagingInvitation to add participant.</param>
+        public async Task AddParticipant(string sip, MessagingInvitation messagingInvitation, CancellationToken cancellationToken)
+        {
+            Conversation conversation = await messagingInvitation.GetConversation(cancellationToken);
+            await conversation.AddParticipant(sip, cancellationToken);
+        }
+        /// <summary>
+        /// Add Phone Call to existing conversation by using OnlineMeetingInvitation.
+        /// </summary>
+        /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
+        /// <param name="phoneNumber">Phone number.</param>
+        /// <param name="onlineMeetingInvitation">OnlineMeetingInvitation</param>
+        public Task AddPhoneCall(string sip, string phoneNumber, OnlineMeetingInvitation onlineMeetingInvitation)
+        {
+            return AddPhoneCall(sip, phoneNumber, onlineMeetingInvitation, _cancellationTokenSource.Token);
         }
 
         /// <summary>
@@ -964,10 +1022,10 @@ namespace Microsoft.Skype.UCWA
         /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
         /// <param name="phoneNumber">Phone number.</param>
         /// <param name="onlineMeetingInvitation">OnlineMeetingInvitation</param>
-        public async Task AddPhoneCall(string sip, string phoneNumber, OnlineMeetingInvitation onlineMeetingInvitation)
+        public async Task AddPhoneCall(string sip, string phoneNumber, OnlineMeetingInvitation onlineMeetingInvitation, CancellationToken cancellationToken)
         {
-            Conversation conversation = await onlineMeetingInvitation.GetConversation();
-            PhoneAudio phoneAudio = await conversation?.GetPhoneAudio();
+            Conversation conversation = await onlineMeetingInvitation.GetConversation(cancellationToken);
+            PhoneAudio phoneAudio = await conversation?.GetPhoneAudio(cancellationToken);
             await phoneAudio?.AddPhoneAudio(sip, phoneNumber);
         }
 
@@ -987,9 +1045,18 @@ namespace Microsoft.Skype.UCWA
         /// </summary>
         /// <param name="text">Reply message text.</param>
         /// <param name="conversation">Conversation</param>
-        public async Task ReplyMessage(string text, Conversation conversation)
+        public Task ReplyMessage(string text, Conversation conversation)
         {
-            Messaging messaging = await conversation.GetMessaging();
+            return ReplyMessage(text, conversation, _cancellationTokenSource.Token);
+        }
+        /// <summary>
+        /// Reply message to existing Messaging by using Conversation.
+        /// </summary>
+        /// <param name="text">Reply message text.</param>
+        /// <param name="conversation">Conversation</param>
+        public async Task ReplyMessage(string text, Conversation conversation, CancellationToken cancellationToken)
+        {
+            Messaging messaging = await conversation.GetMessaging(cancellationToken);
             await messaging?.SendMessage(text);
         }
 
@@ -1003,16 +1070,24 @@ namespace Microsoft.Skype.UCWA
             Messaging messaging = await messagingInvitation.GetMessaging();
             await messaging?.SendMessage(text);
         }
-
+        // <summary>
+        /// Reply message to existing Messaging by using OnlineMeetingInvitation.
+        /// </summary>
+        /// <param name="text">Reply message text.</param>
+        /// <param name="onlineMeetingInvitation">OnlineMeetingInvitation</param>
+        public Task ReplyMessage(string text, OnlineMeetingInvitation onlineMeetingInvitation)
+        {
+            return ReplyMessage(text, onlineMeetingInvitation, _cancellationTokenSource.Token);
+        }
         /// <summary>
         /// Reply message to existing Messaging by using OnlineMeetingInvitation.
         /// </summary>
         /// <param name="text">Reply message text.</param>
         /// <param name="onlineMeetingInvitation">OnlineMeetingInvitation</param>
-        public async Task ReplyMessage(string text, OnlineMeetingInvitation onlineMeetingInvitation)
+        public async Task ReplyMessage(string text, OnlineMeetingInvitation onlineMeetingInvitation, CancellationToken cancellationToken)
         {
-            Conversation conversation = await onlineMeetingInvitation.GetConversation();
-            Messaging messaging = await conversation?.GetMessaging();
+            Conversation conversation = await onlineMeetingInvitation.GetConversation(cancellationToken);
+            Messaging messaging = await conversation?.GetMessaging(cancellationToken);
             await messaging?.SendMessage(text);
         }
 

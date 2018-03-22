@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -37,19 +38,31 @@ namespace Microsoft.Skype.UCWA.Models
             internal UCWAHref contactPresence { get; set; }
         }
 
-        public async Task<Contact> GetContact()
+        public Task<Contact> GetContact()
         {
-            return await HttpService.Get<Contact>(Links.contact);
+            return GetContact(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Contact> GetContact(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Contact>(Links.contact, cancellationToken);
         }
 
-        public async Task<byte[]> GetContactPhone()
+        public Task<byte[]> GetContactPhone()
         {
-            return await HttpService.GetBinary(Links.contactPhoto);
+            return GetContactPhone(HttpService.GetNewCancellationToken());
+        }
+        public async Task<byte[]> GetContactPhone(CancellationToken cancellationToken)
+        {
+            return await HttpService.GetBinary(Links.contactPhoto, cancellationToken);
         }
 
-        public async Task<ContactPresence> GetContactPresence()
+        public Task<ContactPresence> GetContactPresence()
         {
-            return await HttpService.Get<ContactPresence>(Links.contactPresence);
+            return GetContactPresence(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ContactPresence> GetContactPresence(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ContactPresence>(Links.contactPresence, cancellationToken);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -64,30 +65,49 @@ namespace Microsoft.Skype.UCWA.Models
             internal DistributionGroup[] distributionGroups { get; set; }
         }
 
-        public async Task AddToContactList()
+        public Task AddToContactList()
         {
-            var uri = Links.addToContactList.Href + "?displayName=" + Name + "&smtpAddress=" + Uri;
-            await HttpService.Post(Links.addToContactList, "");
+            return AddToContactList(HttpService.GetNewCancellationToken());
+        }
+        public async Task AddToContactList(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.addToContactList, "", cancellationToken);
         }
         
-        public async Task<DistributionGroup> ExpandDistributionGroup()
+        public Task<DistributionGroup> ExpandDistributionGroup()
         {
-            return await HttpService.Get<DistributionGroup>(Links.expandDistributionGroup);
+            return ExpandDistributionGroup(HttpService.GetNewCancellationToken());
+        }
+        public async Task<DistributionGroup> ExpandDistributionGroup(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<DistributionGroup>(Links.expandDistributionGroup, cancellationToken);
         }
 
-        public async Task<GroupContacts> GetGroupContacts()
+        public Task<GroupContacts> GetGroupContacts()
         {
-            return await HttpService.Get<GroupContacts>(Links.groupContacts);
+            return GetGroupContacts(HttpService.GetNewCancellationToken());
+        }
+        public async Task<GroupContacts> GetGroupContacts(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<GroupContacts>(Links.groupContacts, cancellationToken);
         }
 
-        public async Task RemoveFromContactList()
+        public Task RemoveFromContactList()
         {
-            await HttpService.Post(Links.removeFromContactList, "");
+            return RemoveFromContactList(HttpService.GetNewCancellationToken());
+        }
+        public async Task RemoveFromContactList(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.removeFromContactList, "", cancellationToken);
         }
 
-        public async Task SubscribeToGroupPresence()
+        public Task SubscribeToGroupPresence()
         {
-            await HttpService.Post(Links.subscribeToGroupPresence, "");
+            return SubscribeToGroupPresence(HttpService.GetNewCancellationToken());
+        }
+        public async Task SubscribeToGroupPresence(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.subscribeToGroupPresence, "", cancellationToken);
         }
     }
 }

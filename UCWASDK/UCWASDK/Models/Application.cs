@@ -76,9 +76,13 @@ namespace Microsoft.Skype.UCWA.Models
             internal OnlineMeetings onlineMeetings { get; set; }            
         }
 
-        public async Task<Policies> GetPolicies()
+        public Task<Policies> GetPolicies()
         {
-            return await HttpService.Get<Policies>(Links.policies);
+            return GetPolicies(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Policies> GetPolicies(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Policies>(Links.policies, cancellationToken);
         }
 
         public async Task<Application>Get()
@@ -89,9 +93,13 @@ namespace Microsoft.Skype.UCWA.Models
         {
             return await HttpService.Get<Application>(Self, cancellationToken);
         }
-        public async Task Delete()
+        public Task Delete()
         {
-            await HttpService.Delete(Self);
+            return Delete(HttpService.GetNewCancellationToken());
+        }
+        public async Task Delete(CancellationToken cancellationToken)
+        {
+            await HttpService.Delete(Self, cancellationToken);
         }
     }
 }

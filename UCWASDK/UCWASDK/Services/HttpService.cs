@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Services
@@ -36,105 +37,167 @@ namespace Microsoft.Skype.UCWA.Services
         }
         static private ExceptionMappingService exceptionMappingService = new ExceptionMappingService();
 
-        static public async Task<T> Get<T>(UCWAHref href, string version = defaultVersion, bool anonymous = false) where T : UCWAModelBase
+        [Obsolete]
+        static public Task<T> Get<T>(UCWAHref href, string version = defaultVersion, bool anonymous = false) where T : UCWAModelBase
+        {
+            return Get<T>(href, GetNewCancellationToken(), version, anonymous);
+        }
+        static public async Task<T> Get<T>(UCWAHref href, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false) where T : UCWAModelBase
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
                 return default(T);
 
-            return await Get<T>(href.Href, version, anonymous);
+            return await Get<T>(href.Href, cancellationToken, version, anonymous);
         }
-        static public async Task<List<T>> GetList<T>(UCWAHref[] hrefs, string version = defaultVersion, bool anonymous = false) where T : UCWAModelBase
+        [Obsolete]
+        static public Task<List<T>> GetList<T>(UCWAHref[] hrefs, string version = defaultVersion, bool anonymous = false) where T : UCWAModelBase
+        {
+            return GetList<T>(hrefs, GetNewCancellationToken(), version, anonymous);
+        }
+        static public async Task<List<T>> GetList<T>(UCWAHref[] hrefs, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false) where T : UCWAModelBase
         {
             if (hrefs == null || !hrefs.Any())
                 return null;
 
             List<T> list = new List<T>();
-            foreach (var href in hrefs) { if (!string.IsNullOrEmpty(href.Href)) list.Add(await Get<T>(href.Href, version, anonymous)); }
+            foreach (var href in hrefs) { if (!string.IsNullOrEmpty(href.Href)) list.Add(await Get<T>(href.Href, cancellationToken, version, anonymous)); }
 
             return list;
         }
-        static public async Task<T> Get<T>(string uri, string version = defaultVersion, bool anonymous = false) where T : UCWAModelBase
+        [Obsolete]
+        static public Task<T> Get<T>(string uri, string version = defaultVersion, bool anonymous = false) where T : UCWAModelBase
+        {
+            return Get<T>(uri, GetNewCancellationToken(), version, anonymous);
+        }
+        static public async Task<T> Get<T>(string uri, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false) where T : UCWAModelBase
         {
             uri = EnsureUriContainsHttp(uri);
 
-            return await ExecuteHttpCallAndRetry(() => GetInternal(uri, version, anonymous), async (response) =>
-                {
-                    var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
-                    GetPGuid(jObject as JToken);
-                    return JsonConvert.DeserializeObject<T>(jObject.ToString());
-                });
+            return await ExecuteHttpCallAndRetry((token) => GetInternal(uri, token, version, anonymous), async (response) =>
+            {
+                var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
+                GetPGuid(jObject as JToken);
+                return JsonConvert.DeserializeObject<T>(jObject.ToString());
+            }, cancellationToken);
         }
-        static public async Task<HttpResponseMessage> GetInternal(string uri, string version = defaultVersion, bool anonymous = false)
+        static public async Task<HttpResponseMessage> GetInternal(string uri, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false)
         {
             var client = await GetClient(uri, version, anonymous);
-            return await client.GetAsync(uri);
+            return await client.GetAsync(uri, cancellationToken);
         }
-        static public async Task<byte[]> GetBinary(UCWAHref href, string version = defaultVersion, bool anonymous = false)
+        [Obsolete]
+        static public Task<byte[]> GetBinary(UCWAHref href, string version = defaultVersion, bool anonymous = false)
+        {
+            return GetBinary(href, GetNewCancellationToken(), version, anonymous);
+        }
+        static public async Task<byte[]> GetBinary(UCWAHref href, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false)
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
                 return null;
 
             var uri = EnsureUriContainsHttp(href.Href);
 
-            return await ExecuteHttpCallAndRetry(() => GetInternal(uri, version, anonymous), async (response) =>
+            return await ExecuteHttpCallAndRetry((token) => GetInternal(uri, token, version, anonymous), async (response) =>
             {
                 return await response.Content.ReadAsByteArrayAsync();
-            });
+            }, cancellationToken);
         }
-        static public async Task<string> Post(UCWAHref href, object body, string version = defaultVersion, bool anonymous = false)
+        [Obsolete]
+        static public Task<string> Post(UCWAHref href, object body, string version = defaultVersion, bool anonymous = false)
+        {
+            return Post(href, body, GetNewCancellationToken(), version, anonymous);
+        }
+        static public async Task<string> Post(UCWAHref href, object body, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false)
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
                 return string.Empty;
 
-            return await Post(href.Href, body, version, anonymous);
+            return await Post(href.Href, body, cancellationToken, version, anonymous);
         }
-        static public async Task<string> Post(string uri, object body, string version = defaultVersion, bool anonymous = false)
+        [Obsolete]
+        static public Task<string> Post(string uri, object body, string version = defaultVersion, bool anonymous = false)
         {
-            return await ExecuteHttpCallAndRetry(() => PostInternal(uri, body, version, anonymous), (response) =>
+            return Post<string>(uri, body, GetNewCancellationToken(), version, anonymous);
+        }
+        static public async Task<string> Post(string uri, object body, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false)
+        {
+            return await ExecuteHttpCallAndRetry((token) => PostInternal(uri, body, version, anonymous), (response) =>
             {
                 if (response.StatusCode == HttpStatusCode.Created)
                     return response.Headers.Location.ToString();
                 else
                     return string.Empty;
-            });
+            }, cancellationToken);
         }
-        static public async Task<T> Post<T>(UCWAHref href, object body, string version = defaultVersion, bool anonymous = false)
+        [Obsolete]
+        static public Task<T> Post<T>(UCWAHref href, object body, string version = defaultVersion, bool anonymous = false)
+        {
+            return Post<T>(href, body, GetNewCancellationToken(), version, anonymous);
+        }
+        static public async Task<T> Post<T>(UCWAHref href, object body, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false)
         {
             if (href == null || string.IsNullOrEmpty(href.Href))
                 return default(T);
 
-            return await Post<T>(href.Href, body, version, anonymous);
+            return await Post<T>(href.Href, body, cancellationToken, version, anonymous);
         }
-        static public async Task<T> Post<T>(string uri, object body, string version = defaultVersion, bool anonymous = false)
+        [Obsolete]
+        static public Task<T> Post<T>(string uri, object body, string version = defaultVersion, bool anonymous = false)
         {
-            return await ExecuteHttpCallAndRetry(() => PostInternal(uri, body, version, anonymous), async (response) =>
+            return Post<T>(uri, body, GetNewCancellationToken(), version, anonymous);
+        }
+        static public async Task<T> Post<T>(string uri, object body, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false)
+        {
+            return await ExecuteHttpCallAndRetry((token) => PostInternal(uri, body, version, anonymous), async (response) =>
             {
                 var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
                 GetPGuid(jObject as JToken);
                 return JsonConvert.DeserializeObject<T>(jObject.ToString());
-            });
+            }, cancellationToken);
         }
-        static public async Task Put(string uri, UCWAModelBase body, string version = defaultVersion, bool anonymous = false)
+        [Obsolete]
+        static public Task Put(string uri, UCWAModelBase body, string version = defaultVersion, bool anonymous = false)
         {
-            await ExecuteHttpCallAndRetry(() => PutInternal(uri, body, version, anonymous));
+            return Put(uri, body, GetNewCancellationToken(), version, anonymous);
         }
-        static public async Task<T> Put<T>(string uri, UCWAModelBase body, string version = defaultVersion, bool anonymous = false)
+        static public async Task Put(string uri, UCWAModelBase body, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false)
         {
-            return await ExecuteHttpCallAndRetry(() => PutInternal(uri, body, version, anonymous), async (response) =>
+            await ExecuteHttpCallAndRetry((token) => PutInternal(uri, body, version, anonymous), cancellationToken);
+        }
+        private static List<CancellationTokenSource> ctss = new List<CancellationTokenSource>();
+        static internal CancellationToken GetNewCancellationToken()
+        {
+            var cts = new CancellationTokenSource();
+            ctss.Add(cts);
+            return cts.Token;
+        }
+        [Obsolete]
+        static public Task<T> Put<T>(string uri, UCWAModelBase body, string version = defaultVersion, bool anonymous = false)
+        {
+            return Put<T>(uri, body, GetNewCancellationToken(), version, anonymous);
+        }
+        static public async Task<T> Put<T>(string uri, UCWAModelBase body, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false)
+        {
+            return await ExecuteHttpCallAndRetry((token) => PutInternal(uri, body, version, anonymous), async (response) =>
             {
                 var jObject = JObject.Parse(await response.Content.ReadAsStringAsync());
                 GetPGuid(jObject as JToken);
                 return JsonConvert.DeserializeObject<T>(jObject.ToString());
-            });
+            }, cancellationToken);
         }
-        static public async Task Delete(string uri, string version = defaultVersion, bool anonymous = false)
+        [Obsolete]
+        static public Task Delete(string uri, string version = defaultVersion, bool anonymous = false)
+        {
+            return Delete(uri, GetNewCancellationToken(), version, anonymous);
+        }
+        static public async Task Delete(string uri, CancellationToken cancellationToken, string version = defaultVersion, bool anonymous = false)
         {
             if (string.IsNullOrEmpty(uri))
                 return;
 
             uri = EnsureUriContainsHttp(uri);
 
-            await ExecuteHttpCallAndRetry(() => DeleteInternal(uri, version, anonymous));
+            await ExecuteHttpCallAndRetry((token) => DeleteInternal(uri, version, anonymous), cancellationToken);
         }
         static public async Task<HttpResponseMessage> DeleteInternal(string uri, string version = defaultVersion, bool anonymous = false)
         {
@@ -145,6 +208,8 @@ namespace Microsoft.Skype.UCWA.Services
         {
             foreach (var client in clientPool.Values)
                 client.Dispose();
+            foreach (var cts in ctss)
+                cts.Dispose();
             clientPool.Clear();
             _anonymousHttpClient?.Dispose();
             _anonymousHttpClient = null;
@@ -211,14 +276,14 @@ namespace Microsoft.Skype.UCWA.Services
             request.Headers.Add("If-Match", "\"" + body.ETag + "\"");
             return await client.SendAsync(request);
         }
-        static private async Task ExecuteHttpCallAndRetry(Func<Task<HttpResponseMessage>> httpRequest, Action<HttpResponseMessage> deserializationHandler = null)
+        static private async Task ExecuteHttpCallAndRetry(Func<CancellationToken, Task<HttpResponseMessage>> httpRequest, CancellationToken cancellationToken, Action<HttpResponseMessage> deserializationHandler = null)
         {
             var retryCount = 0U;
             Exception lastException = null;
             do
                 try
                 {
-                    var response = await httpRequest();
+                    var response = await httpRequest(cancellationToken);
                     if (response.IsSuccessStatusCode)
                     {
                         deserializationHandler?.Invoke(response);
@@ -235,20 +300,20 @@ namespace Microsoft.Skype.UCWA.Services
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
                 }
-            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount));
+            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount) && !cancellationToken.IsCancellationRequested);
 
             if (lastException != null)
                 throw lastException;
 
         }
-        static private async Task<T> ExecuteHttpCallAndRetry<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, Task<T>> deserializationHandler)
+        static private async Task<T> ExecuteHttpCallAndRetry<T>(Func<CancellationToken, Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, Task<T>> deserializationHandler, CancellationToken cancellationToken)
         {
             var retryCount = 0U;
             Exception lastException = null;
             do
                 try
                 {
-                    var response = await httpRequest();
+                    var response = await httpRequest(cancellationToken);
                     if (response.IsSuccessStatusCode)
                         return await deserializationHandler(response);
                     else
@@ -262,21 +327,21 @@ namespace Microsoft.Skype.UCWA.Services
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
                 }
-            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount));
+            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount) && !cancellationToken.IsCancellationRequested);
 
             if (lastException != null)
                 throw lastException;
 
             return default(T); // this line is never going to be executed because previous one always throws an error
         }
-        static private async Task<T> ExecuteHttpCallAndRetry<T>(Func<Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, T> deserializationHandler)
+        static private async Task<T> ExecuteHttpCallAndRetry<T>(Func<CancellationToken, Task<HttpResponseMessage>> httpRequest, Func<HttpResponseMessage, T> deserializationHandler, CancellationToken cancellationToken)
         {
             var retryCount = 0U;
             Exception lastException = null;
             do
                 try
                 {
-                    var response = await httpRequest();
+                    var response = await httpRequest(cancellationToken);
                     if (response.IsSuccessStatusCode)
                         return deserializationHandler(response);
                     else
@@ -290,7 +355,7 @@ namespace Microsoft.Skype.UCWA.Services
                     await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
                     retryCount++;
                 }
-            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount));
+            while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount) && !cancellationToken.IsCancellationRequested);
 
             if (lastException != null)
                 throw lastException;

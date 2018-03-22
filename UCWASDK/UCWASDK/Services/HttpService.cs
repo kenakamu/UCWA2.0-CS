@@ -294,10 +294,12 @@ namespace Microsoft.Skype.UCWA.Services
                 }
                 catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
                 {
-                    if (ex is AuthenticationExpiredException)
-                        DisposeHttpClients();
-                    lastException = ex;// memorizing the last transient exception in case we still encounter it but run out of retries
-                    await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
+                    lastException = await HandleAuthExpirationAndDelay(retryCount, ex, cancellationToken);
+                    retryCount++;
+                }
+                catch (TaskCanceledException ex) when (ex.CancellationToken != cancellationToken) //request timeout
+                {
+                    lastException = await HandleAuthExpirationAndDelay(retryCount, ex, cancellationToken);
                     retryCount++;
                 }
             while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount) && !cancellationToken.IsCancellationRequested);
@@ -321,10 +323,12 @@ namespace Microsoft.Skype.UCWA.Services
                 }
                 catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
                 {
-                    if (ex is AuthenticationExpiredException)
-                        DisposeHttpClients();
-                    lastException = ex;// memorizing the last transient exception in case we still encounter it but run out of retries
-                    await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
+                    lastException = await HandleAuthExpirationAndDelay(retryCount, ex, cancellationToken);
+                    retryCount++;
+                }
+                catch (TaskCanceledException ex) when (ex.CancellationToken != cancellationToken) //request timeout
+                {
+                    lastException = await HandleAuthExpirationAndDelay(retryCount, ex, cancellationToken);
                     retryCount++;
                 }
             while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount) && !cancellationToken.IsCancellationRequested);
@@ -349,10 +353,12 @@ namespace Microsoft.Skype.UCWA.Services
                 }
                 catch (Exception ex) when (ex is IUCWAException && (ex as IUCWAException).IsTransient)
                 {
-                    if (ex is AuthenticationExpiredException)
-                        DisposeHttpClients();
-                    lastException = ex;// memorizing the last transient exception in case we still encounter it but run out of retries
-                    await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount));
+                    lastException = await HandleAuthExpirationAndDelay(retryCount, ex, cancellationToken);
+                    retryCount++;
+                }
+                catch (TaskCanceledException ex) when (ex.CancellationToken != cancellationToken) //request timeout
+                {
+                    lastException = await HandleAuthExpirationAndDelay(retryCount, ex, cancellationToken);
                     retryCount++;
                 }
             while (Settings.UCWAClient.TransientErrorHandlingPolicy.ShouldRetry(retryCount) && !cancellationToken.IsCancellationRequested);
@@ -361,6 +367,13 @@ namespace Microsoft.Skype.UCWA.Services
                 throw lastException;
 
             return default(T); // this line is never going to be executed because previous one always throws an error
+        }
+        private static async Task<Exception> HandleAuthExpirationAndDelay(uint retryCount, Exception ex, CancellationToken cancellationToken)
+        {
+            if (ex is AuthenticationExpiredException)
+                DisposeHttpClients();
+            await Task.Delay(Settings.UCWAClient.TransientErrorHandlingPolicy.GetNextErrorWaitTimeInMs(retryCount), cancellationToken);
+            return ex;// memorizing the last transient exception in case we still encounter it but run out of retries
         }
         static private async Task HandleError(HttpResponseMessage response)
         {

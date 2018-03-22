@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Enums;
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -29,14 +30,22 @@ namespace Microsoft.Skype.UCWA.Models
             internal UCWAHref resetContactPrivacyRelationship { get; set; }
         }
 
-        public async Task ResetContactPrivacyRelationship()
+        public Task ResetContactPrivacyRelationship()
         {
-            await HttpService.Post(Links.resetContactPrivacyRelationship, "", "2");
+            return ResetContactPrivacyRelationship(HttpService.GetNewCancellationToken());
+        }
+        public async Task ResetContactPrivacyRelationship(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.resetContactPrivacyRelationship, "", cancellationToken, "2");
         }
 
-        public async Task Update()
+        public Task Update()
         {
-            await HttpService.Put(Self, this, "2");
+            return Update(HttpService.GetNewCancellationToken());
+        }
+        public async Task Update(CancellationToken cancellationToken)
+        {
+            await HttpService.Put(Self, this, cancellationToken, "2");
         }
     }
 }

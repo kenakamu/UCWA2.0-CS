@@ -78,14 +78,22 @@ namespace Microsoft.Skype.UCWA.Models
             internal UCWAHref participant { get; set; }
         }
         
-        public async Task<Contact> GetContact()
+        public Task<Contact> GetContact()
         {
-            return await HttpService.Get<Contact>(Links.contact);
+            return GetContact(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Contact> GetContact(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Contact>(Links.contact, cancellationToken);
         }
 
-        public async Task<List<FailedDeliveryParticipant>> GetFailedDeliveryParticipants()
+        public Task<List<FailedDeliveryParticipant>> GetFailedDeliveryParticipants()
         {
-            return await HttpService.GetList<FailedDeliveryParticipant>(Links.failedDeliveryParticipant);
+            return GetFailedDeliveryParticipants(HttpService.GetNewCancellationToken());
+        }
+        public async Task<List<FailedDeliveryParticipant>> GetFailedDeliveryParticipants(CancellationToken cancellationToken)
+        {
+            return await HttpService.GetList<FailedDeliveryParticipant>(Links.failedDeliveryParticipant, cancellationToken);
         }
 
         public Task<Messaging> GetMessaging()
@@ -97,9 +105,13 @@ namespace Microsoft.Skype.UCWA.Models
             return await HttpService.Get<Messaging>(Links.messaging, cancellationToken);
         }
 
-        public async Task<Participant> GetParticipant()
+        public Task<Participant> GetParticipant()
         {
-            return await HttpService.Get<Participant>(Links.participant);
+            return GetParticipant(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Participant> GetParticipant(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Participant>(Links.participant, cancellationToken);
         }
     }
 }

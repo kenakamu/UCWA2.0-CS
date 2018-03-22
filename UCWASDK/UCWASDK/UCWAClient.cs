@@ -1028,15 +1028,23 @@ namespace Microsoft.Skype.UCWA
             PhoneAudio phoneAudio = await conversation?.GetPhoneAudio(cancellationToken);
             await phoneAudio?.AddPhoneAudio(sip, phoneNumber);
         }
-
         /// <summary>
         /// Reply message to existing Messaging by using Message.
         /// </summary>
         /// <param name="text">Reply message text.</param>
         /// <param name="message">Message</param>
-        public async Task ReplyMessage(string text, Message message)
+        public Task ReplyMessage(string text, Message message)
         {
-            Messaging messaging = await message.GetMessaging();
+            return ReplyMessage(text, message, _cancellationTokenSource.Token);
+        }
+        /// <summary>
+        /// Reply message to existing Messaging by using Message.
+        /// </summary>
+        /// <param name="text">Reply message text.</param>
+        /// <param name="message">Message</param>
+        public async Task ReplyMessage(string text, Message message, CancellationToken cancellationToken)
+        {
+            Messaging messaging = await message.GetMessaging(cancellationToken);
             await messaging?.SendMessage(text);
         }
 

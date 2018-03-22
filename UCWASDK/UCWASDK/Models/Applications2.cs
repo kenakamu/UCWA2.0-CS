@@ -1,4 +1,5 @@
 ﻿using Microsoft.Skype.UCWA.Services;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -7,10 +8,14 @@ namespace Microsoft.Skype.UCWA.Models
     /// Represents the entry point for registering this application with the server. 
     /// </summary>
     public class Applications2 : Applications
-    {          
-        public async Task<Application> Get()
+    {
+        public Task<Application> Get()
         {
-            return await HttpService.Get<Application>(Self);
+            return Get(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Application> Get(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Application>(Self, cancellationToken);
         }    
     }
 }

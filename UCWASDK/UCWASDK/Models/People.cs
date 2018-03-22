@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -85,13 +86,18 @@ namespace Microsoft.Skype.UCWA.Models
             return await HttpService.Get<PresenceSubscriptions>(Links.presenceSubscriptions);
         }
 
-        public async Task<Search2> Search(string query)
+        public Task<Search2> Search(string query)
+        {
+            return Search(query, HttpService.GetNewCancellationToken());
+        }
+
+        public async Task<Search2> Search(string query, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(query))
                 return null;
 
             var uri = Links.search.Href + "?query=" + query;
-            return await HttpService.Get<Search2>(uri);
+            return await HttpService.Get<Search2>(uri, cancellationToken);
         }
 
         public async Task<SubscribedContacts> GetSubscribedContacts()

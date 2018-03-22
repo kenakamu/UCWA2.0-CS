@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Enums;
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -59,17 +60,24 @@ namespace Microsoft.Skype.UCWA.Models
             internal UnansweredCallSettings unansweredCallSettings { get; set; }
         }
         
-        public async Task TurnOffCallForwarding()
+        public Task TurnOffCallForwarding()
         {
-            await HttpService.Post(Links.turnOffCallForwarding, "");
+            return TurnOffCallForwarding(HttpService.GetNewCancellationToken());
         }
-
-        public async Task Update(ActivePeriod activePeriod, CallForwardingState activeSetting, UnansweredCallHandling unansweredCallHandling)
+        public async Task TurnOffCallForwarding(CancellationToken cancellationToken)
         {
-            this.ActivePeriod = activePeriod;
-            this.UnansweredCallHandling = unansweredCallHandling;
-            this.ActiveSetting = activeSetting;
-            await HttpService.Put(Self, this);
+            await HttpService.Post(Links.turnOffCallForwarding, "", cancellationToken);
+        }
+        public Task Update(ActivePeriod activePeriod, CallForwardingState activeSetting, UnansweredCallHandling unansweredCallHandling)
+        {
+            return Update(activePeriod, activeSetting, unansweredCallHandling, HttpService.GetNewCancellationToken());
+        }
+        public async Task Update(ActivePeriod activePeriod, CallForwardingState activeSetting, UnansweredCallHandling unansweredCallHandling, CancellationToken cancellationToken)
+        {
+            ActivePeriod = activePeriod;
+            UnansweredCallHandling = unansweredCallHandling;
+            ActiveSetting = activeSetting;
+            await HttpService.Put(Self, this, cancellationToken);
         }
     }
 }

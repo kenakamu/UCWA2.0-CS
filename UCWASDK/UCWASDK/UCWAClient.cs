@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 using static Microsoft.Skype.UCWA.Models.UCWAEvent;
@@ -16,6 +17,7 @@ namespace Microsoft.Skype.UCWA
 {
     public class UCWAClient : IDisposable
     {
+        readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         #region Events
 
         /// <summary>
@@ -655,6 +657,7 @@ namespace Microsoft.Skype.UCWA
         public void Dispose()
         {
             HttpService.DisposeHttpClients();
+            _cancellationTokenSource.Dispose();
         }
 
         /// <summary>
@@ -680,31 +683,47 @@ namespace Microsoft.Skype.UCWA
         /// <param name="phoneNumber">Specify PhoneNumber.</param>
         /// <param name="keepAlive">By specify keepAlive, it keeps sending ReportActivity every minute.</param>
         /// <returns></returns>
-        public async Task SignIn(Availability availability, bool supportMessage, bool supportAudio,
+        public Task SignIn(Availability availability, bool supportMessage, bool supportAudio,
             bool supportPlainText, bool supportHtmlFormat, string phoneNumber, bool keepAlive)
+        {
+            return SignIn(availability, supportMessage, supportAudio, supportPlainText, supportHtmlFormat, phoneNumber, keepAlive, _cancellationTokenSource.Token);
+        }
+
+        /// <summary>
+        /// Run the application and start monitoring events
+        /// </summary>
+        /// <param name="availability">Presence at login</param>
+        /// <param name="supportMessage">Indicate if this application supports Message.</param>
+        /// <param name="supportAudio">Indicate if this application supports Audio. UCWA 2.0 doesn't support Audio.</param>
+        /// <param name="supportPlainText">Indicate if this application supports Plain text.</param>
+        /// <param name="supportHtmlFormat">Indicate if this application supports HTML text.</param>
+        /// <param name="phoneNumber">Specify PhoneNumber.</param>
+        /// <param name="keepAlive">By specify keepAlive, it keeps sending ReportActivity every minute.</param>
+        /// <returns></returns>
+        public async Task SignIn(Availability availability, bool supportMessage, bool supportAudio,
+            bool supportPlainText, bool supportHtmlFormat, string phoneNumber, bool keepAlive, CancellationToken cancellationToken)
         {
             if (application == null)
                 throw new InvalidOperationException("You need to initialize and subscribe the event before starting.");
 
-            await application.Me.MakeMeAvailable(availability, supportMessage, supportAudio, supportPlainText, supportHtmlFormat, phoneNumber);
-            application = await application.Get();
+            await application.Me.MakeMeAvailable(availability, supportMessage, supportAudio, supportPlainText, supportHtmlFormat, phoneNumber, cancellationToken);
+            application = await application.Get(cancellationToken);
 
             if (keepAlive)
-                Parallel.Invoke(async () => await KeepAlive(60));
+                Parallel.Invoke(async () => await KeepAlive(cancellationToken));
 
-            Parallel.Invoke(async () => await MonitorEvent());
+            Parallel.Invoke(async () => await MonitorEvent(cancellationToken));
         }
-
         /// <summary>
         /// Keep the status by sending ReportActivity.
         /// </summary>
         /// <param name="durationInSeconds">Interval to send ReportActivity in seconds. Default value is 60.</param>
-        private async Task KeepAlive(int durationInSeconds = 60)
+        private async Task KeepAlive(CancellationToken cancellationToken, int durationInSeconds = 60)
         {
             while (Me != null)
             {
-                await Me.ReportMyActivity();
-                await Task.Delay(durationInSeconds * 1000);
+                await Me.ReportMyActivity(cancellationToken);
+                await Task.Delay(durationInSeconds * 1000, cancellationToken);
             }
         }
 
@@ -780,23 +799,32 @@ namespace Microsoft.Skype.UCWA
         #endregion
 
         #region Communication/OnlineMeetings Methods
-
         /// <summary>
         /// Get Conversation by using subject or title.
         /// </summary>
         /// <param name="subject">Conversation Subject.</param>
         /// <param name="title">Conversation Title.</param>
         /// <returns>Conversation</returns>
-        public async Task<Conversation> GetConversation(string subject = "", string title = "")
+        public Task<Conversation> GetConversation(string subject = "", string title = "")
+        {
+            return GetConversation(_cancellationTokenSource.Token, subject, title);
+        }
+        /// <summary>
+        /// Get Conversation by using subject or title.
+        /// </summary>
+        /// <param name="subject">Conversation Subject.</param>
+        /// <param name="title">Conversation Title.</param>
+        /// <returns>Conversation</returns>
+        public async Task<Conversation> GetConversation(CancellationToken cancellationToken, string subject = "", string title = "")
         {
             if (string.IsNullOrEmpty(subject) && string.IsNullOrEmpty(title))
                 return null;
 
-            Conversations conversations = await Communication.GetConversations();
+            Conversations conversations = await Communication.GetConversations(cancellationToken);
             if (conversations == null)
                 return null;
 
-            List<Conversation> convs = await conversations.GetConversations();
+            List<Conversation> convs = await conversations.GetConversations(cancellationToken);
             if (convs == null)
                 return null;
 
@@ -814,9 +842,31 @@ namespace Microsoft.Skype.UCWA
         /// <param name="subject">Instant message subject. You can omit this.</param>
         /// <param name="importance">Instant message importance. Default: Normal</param>
         /// <param name="message">Initial message. You can omit this.</param>
-        public async Task StartMessaging(string sip, string subject = "", Importance importance = Importance.Normal, string message = "")
+        public Task StartMessaging(string sip, string subject = "", Importance importance = Importance.Normal, string message = "")
         {
-            await application.Communication.StartMessaging(sip, subject, importance, message);
+            return StartMessaging(sip, _cancellationTokenSource.Token, subject, importance, message);
+        }
+
+        /// <summary>
+        /// Start new instant message.
+        /// </summary>
+        /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
+        /// <param name="subject">Instant message subject. You can omit this.</param>
+        /// <param name="importance">Instant message importance. Default: Normal</param>
+        /// <param name="message">Initial message. You can omit this.</param>
+        public async Task StartMessaging(string sip, CancellationToken cancellationToken, string subject = "", Importance importance = Importance.Normal, string message = "")
+        {
+            await application.Communication.StartMessaging(sip, subject, importance, message, cancellationToken);
+        }
+        /// <summary>
+        /// Start adhoc Online Meeting.
+        /// </summary>
+        /// <param name="subject">Online Meeting Subject.</param>
+        /// <param name="importance">Instant message importance. Default: Normal</param>
+        /// <returns></returns>
+        public Task StartOnlineMeeting(string subject, Importance importance = Importance.Normal)
+        {
+            return StartOnlineMeeting(subject, _cancellationTokenSource.Token, importance);
         }
 
         /// <summary>
@@ -825,9 +875,9 @@ namespace Microsoft.Skype.UCWA
         /// <param name="subject">Online Meeting Subject.</param>
         /// <param name="importance">Instant message importance. Default: Normal</param>
         /// <returns></returns>
-        public async Task StartOnlineMeeting(string subject, Importance importance = Importance.Normal)
+        public async Task StartOnlineMeeting(string subject, CancellationToken cancellationToken, Importance importance = Importance.Normal)
         {
-            await application.Communication.StartOnlineMeeting(subject, importance);
+            await application.Communication.StartOnlineMeeting(subject, importance, cancellationToken);
         }
 
         /// <summary>
@@ -1034,20 +1084,26 @@ namespace Microsoft.Skype.UCWA
         /// <summary>
         /// Refresh Application data.
         /// </summary>
-        public async Task Refresh()
+        public Task Refresh()
         {
-            application = await application.Get();
+            return Refresh(_cancellationTokenSource.Token);
+        }
+        /// <summary>
+        /// Refresh Application data.
+        /// </summary>
+        public async Task Refresh(CancellationToken cancellationToken)
+        {
+            application = await application.Get(cancellationToken);
         }
 
         #endregion
-
-        private async Task<UCWAEvent> GetEvent()
+        private async Task<UCWAEvent> GetEvent(CancellationToken cancellationToken)
         {
             while (!string.IsNullOrEmpty(eventUri))
                 using (var client = new HttpClient())
                     try
                     {
-                        var ucwaEvent = await HttpService.Get<UCWAEvent>(eventUri);
+                        var ucwaEvent = await HttpService.Get<UCWAEvent>(eventUri, cancellationToken);
 
                         if (ucwaEvent == null)
                             await Task.Delay(1000);
@@ -1055,7 +1111,7 @@ namespace Microsoft.Skype.UCWA
                         if (!string.IsNullOrEmpty(ucwaEvent?.Links?.Resync))
                         {
                             eventUri = ucwaEvent.Links.Resync;
-                            ucwaEvent = await GetEvent();
+                            ucwaEvent = await GetEvent(cancellationToken);
                         }
 
                         eventUri = ucwaEvent?.Links?.Next;
@@ -1067,12 +1123,11 @@ namespace Microsoft.Skype.UCWA
                     }
             return null;
         }
-
-        private async Task MonitorEvent()
+        private async Task MonitorEvent(CancellationToken cancellationToken)
         {
             while (true)
             {
-                UCWAEvent eventdata = await GetEvent();
+                UCWAEvent eventdata = await GetEvent(cancellationToken);
 
                 if (eventdata == null)
                     return;
@@ -1085,13 +1140,13 @@ namespace Microsoft.Skype.UCWA
                             HandleCommunicationEvent(sender);
                             break;
                         case "conversation":
-                            await HandleConversationEvent(sender);
+                            await HandleConversationEvent(sender, cancellationToken);
                             break;
                         case "me":
-                            await HandleMeEvent(sender);
+                            await HandleMeEvent(sender, cancellationToken);
                             break;
                         case "people":
-                            await HandlePeopleEvent(sender);
+                            await HandlePeopleEvent(sender, cancellationToken);
                             break;
                     }
                 }
@@ -1141,7 +1196,7 @@ namespace Microsoft.Skype.UCWA
             }
         }
 
-        private async Task HandleConversationEvent(EventSender sender)
+        private async Task HandleConversationEvent(EventSender sender, CancellationToken cancellationToken)
         {
             if (sender.Events == null)
                 return;
@@ -1151,25 +1206,25 @@ namespace Microsoft.Skype.UCWA
                 switch (ucwaEvent.Type)
                 {
                     case "added":
-                        await HandleConversationAddedEvent(ucwaEvent);
+                        await HandleConversationAddedEvent(ucwaEvent, cancellationToken);
                         break;
                     case "completed":
                         HandleConversationCompletedEvent(ucwaEvent);
                         break;
                     case "deleted":
-                        await HandleConversationDeletedEvent(ucwaEvent);
+                        await HandleConversationDeletedEvent(ucwaEvent, cancellationToken);
                         break;
                     case "started":
                         HandleConversationStartedEvent(ucwaEvent);
                         break;
                     case "updated":
-                        await HandleConversationUpdatedEvent(ucwaEvent);
+                        await HandleConversationUpdatedEvent(ucwaEvent, cancellationToken);
                         break;
                 }
             }
         }
 
-        private async Task HandleMeEvent(EventSender sender)
+        private async Task HandleMeEvent(EventSender sender, CancellationToken cancellationToken)
         {
             if (sender.Events == null)
                 return;
@@ -1185,13 +1240,13 @@ namespace Microsoft.Skype.UCWA
                         HandleMeDeletedEvent(ucwaEvent);
                         break;
                     case "updated":
-                        await HandleMeUpdatedEvent(ucwaEvent);
+                        await HandleMeUpdatedEvent(ucwaEvent, cancellationToken);
                         break;
                 }
             }
         }
 
-        private async Task HandlePeopleEvent(EventSender sender)
+        private async Task HandlePeopleEvent(EventSender sender, CancellationToken cancellationToken)
         {
             if (sender.Events == null)
                 return;
@@ -1201,13 +1256,13 @@ namespace Microsoft.Skype.UCWA
                 switch (ucwaEvent.Type)
                 {
                     case "added":
-                        await HandlePeopleAddedEvent(ucwaEvent);
+                        await HandlePeopleAddedEvent(ucwaEvent, cancellationToken);
                         break;
                     case "deleted":
-                        await HandlePeopleDeletedEvent(ucwaEvent);
+                        await HandlePeopleDeletedEvent(ucwaEvent, cancellationToken);
                         break;
                     case "updated":
-                        await HandlePeopleUpdatedEvent(ucwaEvent);
+                        await HandlePeopleUpdatedEvent(ucwaEvent, cancellationToken);
                         break;
                 }
             }
@@ -1319,21 +1374,21 @@ namespace Microsoft.Skype.UCWA
 
         #region Conversation Handlers
 
-        private async Task HandleConversationAddedEvent(Event conversation)
+        private async Task HandleConversationAddedEvent(Event conversation, CancellationToken cancellationToken)
         {
             switch (conversation.Link.Rel)
             {
                 case "applicationSharer":
                     if (ApplicationSharerAdded != null)
                     {
-                        ApplicationSharer applicationSharer = await HttpService.Get<ApplicationSharer>(conversation.Link);
+                        ApplicationSharer applicationSharer = await HttpService.Get<ApplicationSharer>(conversation.Link, cancellationToken);
                         ApplicationSharerAdded.Invoke(applicationSharer);
                     }
                     break;
                 case "localParticipant":
                     if (LocalParticipantAdded != null)
                     {
-                        LocalParticipant localParticipant = await HttpService.Get<LocalParticipant>(conversation.Link);
+                        LocalParticipant localParticipant = await HttpService.Get<LocalParticipant>(conversation.Link, cancellationToken);
                         LocalParticipantAdded?.Invoke(localParticipant);
                     }
                     break;
@@ -1349,35 +1404,35 @@ namespace Microsoft.Skype.UCWA
                 case "participantAudio":
                     if (ParticipantAudioAdded != null)
                     {
-                        ParticipantAudio participantAudio = await HttpService.Get<ParticipantAudio>(conversation.Link);
+                        ParticipantAudio participantAudio = await HttpService.Get<ParticipantAudio>(conversation.Link, cancellationToken);
                         ParticipantAudioAdded?.Invoke(participantAudio);
                     }
                     break;
                 case "participantDataCollaboration":
                     if (ParticipantDataCollaborationAdded != null)
                     {
-                        ParticipantDataCollaboration participantDataCollaboration = await HttpService.Get<ParticipantDataCollaboration>(conversation.Link);
+                        ParticipantDataCollaboration participantDataCollaboration = await HttpService.Get<ParticipantDataCollaboration>(conversation.Link, cancellationToken);
                         ParticipantDataCollaborationAdded?.Invoke(participantDataCollaboration);
                     }
                     break;
                 case "participantMessaging":
                     if (ParticipantMessagingAdded != null)
                     {
-                        ParticipantMessaging participantMessaging = await HttpService.Get<ParticipantMessaging>(conversation.Link);
+                        ParticipantMessaging participantMessaging = await HttpService.Get<ParticipantMessaging>(conversation.Link, cancellationToken);
                         ParticipantMessagingAdded?.Invoke(participantMessaging);
                     }
                     break;
                 case "participantPanoramicVideo":
                     if (ParticipantPanoramicVideoAdded != null)
                     {
-                        ParticipantPanoramicVideo participantPanoramicVideo = await HttpService.Get<ParticipantPanoramicVideo>(conversation.Link);
+                        ParticipantPanoramicVideo participantPanoramicVideo = await HttpService.Get<ParticipantPanoramicVideo>(conversation.Link, cancellationToken);
                         ParticipantPanoramicVideoAdded?.Invoke(participantPanoramicVideo);
                     }
                     break;
                 case "participantVideo":
                     if (ParticipantVideoAdded != null)
                     {
-                        ParticipantVideo participantVideo = await HttpService.Get<ParticipantVideo>(conversation.Link);
+                        ParticipantVideo participantVideo = await HttpService.Get<ParticipantVideo>(conversation.Link, cancellationToken);
                         ParticipantVideoAdded?.Invoke(participantVideo);
                     }
                     break;
@@ -1400,21 +1455,21 @@ namespace Microsoft.Skype.UCWA
             }
         }
 
-        private async Task HandleConversationDeletedEvent(Event conversation)
+        private async Task HandleConversationDeletedEvent(Event conversation, CancellationToken cancellationToken)
         {
             switch (conversation.Link.Rel)
             {
                 case "applicationSharer":
                     if (ApplicationSharerDeleted != null)
                     {
-                        ApplicationSharer applicationSharer = await HttpService.Get<ApplicationSharer>(conversation.Link);
+                        ApplicationSharer applicationSharer = await HttpService.Get<ApplicationSharer>(conversation.Link, cancellationToken);
                         ApplicationSharerDeleted.Invoke(applicationSharer);
                     }
                     break;
                 case "localParticipant":
                     if (LocalParticipantDeleted != null)
                     {
-                        LocalParticipant localParticipant = await HttpService.Get<LocalParticipant>(conversation.Link);
+                        LocalParticipant localParticipant = await HttpService.Get<LocalParticipant>(conversation.Link, cancellationToken);
                         LocalParticipantDeleted.Invoke(localParticipant);
                     }
                     break;
@@ -1455,14 +1510,14 @@ namespace Microsoft.Skype.UCWA
             }
         }
 
-        private async Task HandleConversationUpdatedEvent(Event conversation)
+        private async Task HandleConversationUpdatedEvent(Event conversation, CancellationToken cancellationToken)
         {
             switch (conversation.Link.Rel)
             {
                 case "applicationSharer":
                     if (ApplicationSharerUpdated != null)
                     {
-                        ApplicationSharer applicationSharer = await HttpService.Get<ApplicationSharer>(conversation.Link);
+                        ApplicationSharer applicationSharer = await HttpService.Get<ApplicationSharer>(conversation.Link, cancellationToken);
                         ApplicationSharerUpdated.Invoke(applicationSharer);
                     }
                     break;
@@ -1478,7 +1533,7 @@ namespace Microsoft.Skype.UCWA
                 case "localParticipant":
                     if (LocalParticipantUpdated != null)
                     {
-                        LocalParticipant localParticipant = await HttpService.Get<LocalParticipant>(conversation.Link);
+                        LocalParticipant localParticipant = await HttpService.Get<LocalParticipant>(conversation.Link, cancellationToken);
                         LocalParticipantUpdated.Invoke(localParticipant);
                     }
                     break;
@@ -1491,49 +1546,49 @@ namespace Microsoft.Skype.UCWA
                 case "participant":
                     if (ParticipantUpdated != null)
                     {
-                        Participant participant = await HttpService.Get<Participant>(conversation.Link);
+                        Participant participant = await HttpService.Get<Participant>(conversation.Link, cancellationToken);
                         ParticipantUpdated.Invoke(participant);
                     }
                     break;
                 case "participantApplicationSharing":
                     if (ParticipantApplicationSharingUpdated != null)
                     {
-                        ParticipantApplicationSharing participantApplicationSharing = await HttpService.Get<ParticipantApplicationSharing>(conversation.Link);
+                        ParticipantApplicationSharing participantApplicationSharing = await HttpService.Get<ParticipantApplicationSharing>(conversation.Link, cancellationToken);
                         ParticipantApplicationSharingUpdated?.Invoke(participantApplicationSharing);
                     }
                     break;
                 case "participantAudio":
                     if (ParticipantAudioUpdated != null)
                     {
-                        ParticipantAudio participantAudio = await HttpService.Get<ParticipantAudio>(conversation.Link);
+                        ParticipantAudio participantAudio = await HttpService.Get<ParticipantAudio>(conversation.Link, cancellationToken);
                         ParticipantAudioUpdated?.Invoke(participantAudio);
                     }
                     break;
                 case "participantDataCollaboration":
                     if (ParticipantDataCollaborationUpdated != null)
                     {
-                        ParticipantDataCollaboration participantDataCollaboration = await HttpService.Get<ParticipantDataCollaboration>(conversation.Link);
+                        ParticipantDataCollaboration participantDataCollaboration = await HttpService.Get<ParticipantDataCollaboration>(conversation.Link, cancellationToken);
                         ParticipantDataCollaborationUpdated?.Invoke(participantDataCollaboration);
                     }
                     break;
                 case "participantMessaging":
                     if (ParticipantMessagingUpdated != null)
                     {
-                        ParticipantMessaging participantMessaging = await HttpService.Get<ParticipantMessaging>(conversation.Link);
+                        ParticipantMessaging participantMessaging = await HttpService.Get<ParticipantMessaging>(conversation.Link, cancellationToken);
                         ParticipantMessagingUpdated?.Invoke(participantMessaging);
                     }
                     break;
                 case "participantPanoramicVideo":
                     if (ParticipantPanoramicVideoUpdated != null)
                     {
-                        ParticipantPanoramicVideo participantPanoramicVideo = await HttpService.Get<ParticipantPanoramicVideo>(conversation.Link);
+                        ParticipantPanoramicVideo participantPanoramicVideo = await HttpService.Get<ParticipantPanoramicVideo>(conversation.Link, cancellationToken);
                         ParticipantPanoramicVideoUpdated?.Invoke(participantPanoramicVideo);
                     }
                     break;
                 case "participantVideo":
                     if (ParticipantVideoUpdated != null)
                     {
-                        ParticipantVideo participantVideo = await HttpService.Get<ParticipantVideo>(conversation.Link);
+                        ParticipantVideo participantVideo = await HttpService.Get<ParticipantVideo>(conversation.Link, cancellationToken);
                         ParticipantVideoUpdated?.Invoke(participantVideo);
                     }
                     break;
@@ -1582,7 +1637,7 @@ namespace Microsoft.Skype.UCWA
             }
         }
 
-        private async Task HandleMeUpdatedEvent(Event me)
+        private async Task HandleMeUpdatedEvent(Event me, CancellationToken cancellationToken)
         {
             switch (me.Link.Rel)
             {
@@ -1592,21 +1647,21 @@ namespace Microsoft.Skype.UCWA
                 case "location":
                     if (MyLocationUpdated != null)
                     {
-                        Location location = await Me.GetLocation();
+                        Location location = await Me.GetLocation(cancellationToken);
                         MyLocationUpdated.Invoke(location);
                     }
                     break;
                 case "note":
                     if (MyNoteUpdated != null)
                     {
-                        Note note = await Me.GetNote();
+                        Note note = await Me.GetNote(cancellationToken);
                         MyNoteUpdated.Invoke(note);
                     }
                     break;
                 case "presence":
                     if (MyPresenceUpdated != null)
                     {
-                        Presence presence = await Me.GetPresencs();
+                        Presence presence = await Me.GetPresence(cancellationToken);
                         MyPresenceUpdated.Invoke(presence);
                     }
                     break;
@@ -1617,18 +1672,18 @@ namespace Microsoft.Skype.UCWA
 
         #region People Handlers
 
-        private async Task HandlePeopleAddedEvent(Event people)
+        private async Task HandlePeopleAddedEvent(Event people, CancellationToken cancellationToken)
         {
             switch (people.Link.Rel)
             {
                 case "contact":
-                    await HandleContactAddedEvent(people);
+                    await HandleContactAddedEvent(people, cancellationToken);
                     break;
                 case "group":
-                    await HandleGroupAddedEvent(people);
+                    await HandleGroupAddedEvent(people, cancellationToken);
                     break;
                 case "distributionGroup":
-                    await HandleDistributionGroupAddedEvent(people);
+                    await HandleDistributionGroupAddedEvent(people, cancellationToken);
                     break;
                 case "presenceSubscription":
                     PresenceSubscriptionAdded?.Invoke(people.Embedded.PresenceSubscription);
@@ -1639,12 +1694,12 @@ namespace Microsoft.Skype.UCWA
             }
         }
 
-        private async Task HandlePeopleDeletedEvent(Event people)
+        private async Task HandlePeopleDeletedEvent(Event people, CancellationToken cancellationToken)
         {
             switch (people.Link.Rel)
             {
                 case "contact":
-                    await HandleContactDeletedEvent(people);
+                    await HandleContactDeletedEvent(people, cancellationToken);
                     break;
                 case "group":
                     HandleGroupDeletedEvent(people);
@@ -1661,39 +1716,39 @@ namespace Microsoft.Skype.UCWA
             }
         }
 
-        private async Task HandlePeopleUpdatedEvent(Event people)
+        private async Task HandlePeopleUpdatedEvent(Event people, CancellationToken cancellationToken)
         {
             switch (people.Link.Rel)
             {
                 case "contactLocation":
                     if (ContactLocationUpdated != null)
                     {
-                        Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href);
-                        ContactLocation contactLocation = await HttpService.Get<ContactLocation>(people.Link.Href);
+                        Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href, cancellationToken);
+                        ContactLocation contactLocation = await HttpService.Get<ContactLocation>(people.Link.Href, cancellationToken);
                         ContactLocationUpdated.Invoke(contactLocation, contact);
                     }
                     break;
                 case "contactNote":
                     if (ContactNoteUpdated != null)
                     {
-                        Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href);
-                        ContactNote contactNote = await HttpService.Get<ContactNote>(people.Link.Href);
+                        Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href, cancellationToken);
+                        ContactNote contactNote = await HttpService.Get<ContactNote>(people.Link.Href, cancellationToken);
                         ContactNoteUpdated.Invoke(contactNote, contact);
                     }
                     break;
                 case "contactPresence":
                     if (ContactPresenceUpdated != null)
                     {
-                        Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href);
-                        ContactPresence contactPresence = await HttpService.Get<ContactPresence>(people.Link.Href);
+                        Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href, cancellationToken);
+                        ContactPresence contactPresence = await HttpService.Get<ContactPresence>(people.Link.Href, cancellationToken);
                         ContactPresenceUpdated.Invoke(contactPresence, contact);
                     }
                     break;
                 case "contactPrivacyRelationship":
                     if (ContactPrivacyRelationshipUpdated != null)
                     {
-                        Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href);
-                        ContactPrivacyRelationship2 contactPrivacyRelationship2 = await HttpService.Get<ContactPrivacyRelationship2>(people.Link.Href);
+                        Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href, cancellationToken);
+                        ContactPrivacyRelationship2 contactPrivacyRelationship2 = await HttpService.Get<ContactPrivacyRelationship2>(people.Link.Href, cancellationToken);
                         ContactPrivacyRelationshipUpdated.Invoke(contactPrivacyRelationship2, contact);
                     }
                     break;
@@ -1701,7 +1756,7 @@ namespace Microsoft.Skype.UCWA
                     if (ContactSupportedModalitiesUpdated != null)
                     {
                         Contact contact = people.In == null ? null : await HttpService.Get<Contact>(people.In.Href);
-                        ContactSupportedModalities contactSupportedModalities = await HttpService.Get<ContactSupportedModalities>(people.Link.Href);
+                        ContactSupportedModalities contactSupportedModalities = await HttpService.Get<ContactSupportedModalities>(people.Link.Href, cancellationToken);
                         ContactSupportedModalitiesUpdated.Invoke(contactSupportedModalities, contact);
                     }
                     break;
@@ -1724,58 +1779,58 @@ namespace Microsoft.Skype.UCWA
 
         #region Contact Handlers
 
-        private async Task HandleContactAddedEvent(Event people)
+        private async Task HandleContactAddedEvent(Event people, CancellationToken cancellationToken)
         {
             switch (people.In.Rel)
             {
                 case "group":
                     if (ContactAddedToGroup != null)
                     {
-                        Contact contact = await HttpService.Get<Contact>(people.Link.Href);
-                        Group group = await HttpService.Get<Group>(people.In.Href);
+                        Contact contact = await HttpService.Get<Contact>(people.Link.Href, cancellationToken);
+                        Group group = await HttpService.Get<Group>(people.In.Href, cancellationToken);
                         ContactAddedToGroup.Invoke(contact, group);
                     }
                     break;
                 case "myContacts":
                     if (ContactAdded != null)
                     {
-                        Contact contact = await HttpService.Get<Contact>(people.Link.Href);
+                        Contact contact = await HttpService.Get<Contact>(people.Link.Href, cancellationToken);
                         ContactAdded.Invoke(contact);
                     }
                     break;
                 case "subscribedContacts":
                     if (ContactSubscriptionAdded != null)
                     {
-                        Contact contact = await HttpService.Get<Contact>(people.Link.Href);
+                        Contact contact = await HttpService.Get<Contact>(people.Link.Href, cancellationToken);
                         ContactSubscriptionAdded.Invoke(contact);
                     }
                     break;
             }
         }
 
-        private async Task HandleContactDeletedEvent(Event people)
+        private async Task HandleContactDeletedEvent(Event people, CancellationToken cancellationToken)
         {
             switch (people.In.Rel)
             {
                 case "group":
                     if (ContactDeletedFromGroup != null)
                     {
-                        Contact contact = await HttpService.Get<Contact>(people.Link.Href);
-                        Group group = await HttpService.Get<Group>(people.In.Href);
+                        Contact contact = await HttpService.Get<Contact>(people.Link.Href, cancellationToken);
+                        Group group = await HttpService.Get<Group>(people.In.Href, cancellationToken);
                         ContactDeletedFromGroup.Invoke(contact, group);
                     }
                     break;
                 case "myContacts":
                     if (ContactDeleted != null)
                     {
-                        Contact contact = await HttpService.Get<Contact>(people.Link.Href);
+                        Contact contact = await HttpService.Get<Contact>(people.Link.Href, cancellationToken);
                         ContactDeleted.Invoke(contact);
                     }
                     break;
                 case "subscribedContacts":
                     if (ContactSubscriptionDeleted != null)
                     {
-                        Contact contact = await HttpService.Get<Contact>(people.Link.Href);
+                        Contact contact = await HttpService.Get<Contact>(people.Link.Href, cancellationToken);
                         ContactSubscriptionDeleted.Invoke(contact);
                     }
                     break;
@@ -1880,14 +1935,14 @@ namespace Microsoft.Skype.UCWA
 
         #region Group Handlers
 
-        private async Task HandleGroupAddedEvent(Event people)
+        private async Task HandleGroupAddedEvent(Event people, CancellationToken cancellationToken)
         {
             switch (people.In.Rel)
             {
                 case "myGroups":
                     if (GroupAddedToMyGroups != null)
                     {
-                        Group group = await HttpService.Get<Group>(people.Link.Href);
+                        Group group = await HttpService.Get<Group>(people.Link.Href, cancellationToken);
                         GroupAddedToMyGroups.Invoke(group);
                     }
                     break;
@@ -1904,14 +1959,14 @@ namespace Microsoft.Skype.UCWA
             }
         }
 
-        private async Task HandleDistributionGroupAddedEvent(Event people)
+        private async Task HandleDistributionGroupAddedEvent(Event people, CancellationToken cancellationToken)
         {
             switch (people.In.Rel)
             {
                 case "myGroup":
                     if (DistributionGroupAddedToMyGroups != null)
                     {
-                        DistributionGroup distributionGroup = await HttpService.Get<DistributionGroup>(people.Link.Href);
+                        DistributionGroup distributionGroup = await HttpService.Get<DistributionGroup>(people.Link.Href, cancellationToken);
                         DistributionGroupAddedToMyGroups.Invoke(distributionGroup);
                     }
                     break;

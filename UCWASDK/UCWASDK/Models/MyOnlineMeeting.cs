@@ -2,6 +2,7 @@
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -87,24 +88,41 @@ namespace Microsoft.Skype.UCWA.Models
             internal OnlineMeetingExtension[] onlineMeetingExtensions { get; set; }               
         }
 
-        public async Task<OnlineMeetingExtensions> GetOnlineMeetingExtensions()
+        public Task<OnlineMeetingExtensions> GetOnlineMeetingExtensions()
         {
-            return await HttpService.Get<OnlineMeetingExtensions>(Links.onlineMeetingExtensions);
+            return GetOnlineMeetingExtensions(HttpService.GetNewCancellationToken());
+        }
+        public async Task<OnlineMeetingExtensions> GetOnlineMeetingExtensions(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<OnlineMeetingExtensions>(Links.onlineMeetingExtensions, cancellationToken);
         }
 
-        public async Task<MyOnlineMeeting> Get()
+        public Task<MyOnlineMeeting> Get()
         {
-            return await HttpService.Get<MyOnlineMeeting>(Self);
+            return Get(HttpService.GetNewCancellationToken());
         }
 
-        public async Task Delete()
+        public async Task<MyOnlineMeeting> Get(CancellationToken cancellationToken)
         {
-            await HttpService.Delete(Self);
+            return await HttpService.Get<MyOnlineMeeting>(Self, cancellationToken);
         }
 
-        public async Task<MyOnlineMeeting> Update()
+        public Task Delete()
         {
-            return await HttpService.Put<MyOnlineMeeting>(Self, this);
+            return Delete(HttpService.GetNewCancellationToken());
+        }
+        public async Task Delete(CancellationToken cancellationToken)
+        {
+            await HttpService.Delete(Self, cancellationToken);
+        }
+
+        public Task<MyOnlineMeeting> Update()
+        {
+            return Update(HttpService.GetNewCancellationToken());
+        }
+        public async Task<MyOnlineMeeting> Update(CancellationToken cancellationToken)
+        {
+            return await HttpService.Put<MyOnlineMeeting>(Self, this, cancellationToken);
         }      
     }
 }

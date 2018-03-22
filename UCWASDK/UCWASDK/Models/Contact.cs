@@ -2,6 +2,7 @@
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -84,34 +85,58 @@ namespace Microsoft.Skype.UCWA.Models
             internal UCWAHref contactSupportedModalities { get; set; }
         }
 
-        public async Task<ContactLocation> GetContactLocation()
+        public Task<ContactLocation> GetContactLocation()
         {
-            return await HttpService.Get<ContactLocation>(Links.contactLocation);
+            return GetContactLocation(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ContactLocation> GetContactLocation(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ContactLocation>(Links.contactLocation, cancellationToken);
         }
 
-        public async Task<ContactNote> GetContactNote()
+        public Task<ContactNote> GetContactNote()
         {
-            return await HttpService.Get<ContactNote>(Links.contactNote);
+            return GetContactNote(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ContactNote> GetContactNote(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ContactNote>(Links.contactNote, cancellationToken);
         }
 
-        public async Task<byte[]> GetContactPhoto()
+        public Task<byte[]> GetContactPhoto()
         {
-            return await HttpService.GetBinary(Links.contactPhoto);
+            return GetContactPhoto(HttpService.GetNewCancellationToken());
+        }
+        public async Task<byte[]> GetContactPhoto(CancellationToken cancellationToken)
+        {
+            return await HttpService.GetBinary(Links.contactPhoto, cancellationToken);
         }
 
-        public async Task<ContactPresence> GetContactPresence()
+        public Task<ContactPresence> GetContactPresence()
         {
-            return await HttpService.Get<ContactPresence>(Links.contactPresence);
+            return GetContactPresence(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ContactPresence> GetContactPresence(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ContactPresence>(Links.contactPresence, cancellationToken);
         }
 
-        public async Task<ContactPrivacyRelationship> GetContactPrivacyRelationship()
+        public Task<ContactPrivacyRelationship> GetContactPrivacyRelationship()
         {
-            return await HttpService.Get<ContactPrivacyRelationship>(Links.contactPrivacyRelationship);
+            return GetContactPrivacyRelationship(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ContactPrivacyRelationship> GetContactPrivacyRelationship(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ContactPrivacyRelationship>(Links.contactPrivacyRelationship, cancellationToken);
         }
 
-        public async Task<ContactSupportedModalities> GetContactSupportedModalities()
+        public Task<ContactSupportedModalities> GetContactSupportedModalities()
         {
-            return await HttpService.Get<ContactSupportedModalities>(Links.contactSupportedModalities);
+            return GetContactSupportedModalities(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ContactSupportedModalities> GetContactSupportedModalities(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ContactSupportedModalities>(Links.contactSupportedModalities, cancellationToken);
         }
     }
 }

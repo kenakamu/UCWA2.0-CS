@@ -173,13 +173,13 @@ namespace TestClient
             ConsoleWrite_White("note: {0}", note.Message);
             foreach (var phone in client.Me.GetPhones().Result) { ConsoleWrite_White("phone: {0}", phone); }
             ConsoleWrite_White("photo: {0}", client.Me.GetPhoto().Result);
-            var presence = client.Me.GetPresencs().Result;
+            var presence = client.Me.GetPresence().Result;
             ConsoleWrite_White("presence: {0}", presence.Availability);
         }
 
         private void Presence()
         {
-            var presence = client.Me.GetPresencs().Result;
+            var presence = client.Me.GetPresence().Result;
             ConsoleWrite_White("Select new status");
             ConsoleWrite_White("Online | Offline | Away | BeRightBack | Busy | DoNotDisturb");
             var result = Console.ReadLine();

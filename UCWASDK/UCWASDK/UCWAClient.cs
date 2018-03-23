@@ -1058,7 +1058,7 @@ namespace Microsoft.Skype.UCWA
         {
             Conversation conversation = await onlineMeetingInvitation.GetConversation(cancellationToken);
             PhoneAudio phoneAudio = await conversation?.GetPhoneAudio(cancellationToken);
-            await phoneAudio?.AddPhoneAudio(sip, phoneNumber);
+            await phoneAudio?.AddPhoneAudio(sip, phoneNumber, _cancellationTokenSource.Token);
         }
         /// <summary>
         /// Reply message to existing Messaging by using Message.

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -31,8 +32,12 @@ namespace Microsoft.Skype.UCWA.Models
             [JsonProperty("memberships")]
             internal UCWAHref memberships { get; set; }
         }
+        public Task<PresenceSubscriptionMemberships> AddToPresenceSubscription(params string[] sips)
+        {
+            return AddToPresenceSubscription(HttpService.GetNewCancellationToken(), sips);
+        }
 
-        public async Task<PresenceSubscriptionMemberships> AddToPresenceSubscription(params string[] sips)
+        public async Task<PresenceSubscriptionMemberships> AddToPresenceSubscription(CancellationToken cancellationToken, params string[] sips)
         {
             if (sips == null || sips.Length == 0)
                 return null;
@@ -42,17 +47,27 @@ namespace Microsoft.Skype.UCWA.Models
             foreach (var sip in sips) { contactUris.Add(sip); }
             body["ContactUris"] = contactUris;
 
-            return await HttpService.Post<PresenceSubscriptionMemberships>(Links.addToPresenceSubscription, body);
+            return await HttpService.Post<PresenceSubscriptionMemberships>(Links.addToPresenceSubscription, body, cancellationToken);
         }
 
-        public async Task<Memberships> GetMemberships()
+        public Task<Memberships> GetMemberships()
         {
-            return await HttpService.Get<Memberships>(Links.memberships);
+            return GetMemberships(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<Memberships> GetMemberships(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Memberships>(Links.memberships, cancellationToken);
         }
 
         public async Task Delete()
         {
-            await HttpService.Delete(Self);
+            await Delete(HttpService.GetNewCancellationToken());
+        }
+
+        public async Task Delete(CancellationToken cancellationToken)
+        {
+            await HttpService.Delete(Self, cancellationToken);
         }
     }    
 }

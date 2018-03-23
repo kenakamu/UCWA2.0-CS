@@ -761,7 +761,7 @@ namespace Microsoft.Skype.UCWA
             {
                 PresenceSubscription presenceSubscription = presenceSubscriptions.Subscriptions.FirstOrDefault(x => x.Id == sip);
                 if (presenceSubscription != null)
-                    await presenceSubscription.Delete();
+                    await presenceSubscription.Delete(_cancellationTokenSource.Token);
             }
         }
 

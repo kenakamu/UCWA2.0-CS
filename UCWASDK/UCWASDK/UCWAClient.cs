@@ -1309,12 +1309,12 @@ namespace Microsoft.Skype.UCWA
             }
         }
 
-        internal async Task GetToken(HttpClient client, string uri)
+        internal async Task GetToken(HttpClient client, string uri, CancellationToken cancellationToken)
         {
             SendingRequest(client, uri);
             while (client.DefaultRequestHeaders.Authorization == null)
             {
-                await Task.Delay(100);
+                await Task.Delay(100, cancellationToken);
             }
         }
 

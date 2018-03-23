@@ -919,7 +919,7 @@ namespace Microsoft.Skype.UCWA
         /// <returns>Created MyOnlineMeeting</returns>
         public async Task<MyOnlineMeeting> CreateScheduledOnlineMeeting(MyOnlineMeeting myOnlineMeeting, CancellationToken cancellationToken)
         {
-            MyOnlineMeetings myOnlineMeetings = await application.OnlineMeetings.GetMyOnlineMeetings();
+            MyOnlineMeetings myOnlineMeetings = await application.OnlineMeetings.GetMyOnlineMeetings(cancellationToken);
             return await myOnlineMeetings.Create(myOnlineMeeting, cancellationToken);
         }
         /// <summary>

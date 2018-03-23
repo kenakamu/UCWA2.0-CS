@@ -773,7 +773,7 @@ namespace Microsoft.Skype.UCWA
         public async Task<PresenceSubscription> SubscribeContactsChange(CancellationToken cancellationToken, params string[] sips)
         {
             PresenceSubscriptions presenceSubscriptions = await application.People.GetPresenceSubscriptions(cancellationToken);
-            return await presenceSubscriptions.SubscribeToContactsPresence(sips, 30);
+            return await presenceSubscriptions.SubscribeToContactsPresence(cancellationToken, sips, 30);
         }
         /// <summary>
         /// Unsubscribe to Contact Change.
@@ -1091,7 +1091,7 @@ namespace Microsoft.Skype.UCWA
         {
             Conversation conversation = await onlineMeetingInvitation.GetConversation(cancellationToken);
             PhoneAudio phoneAudio = await conversation?.GetPhoneAudio(cancellationToken);
-            await phoneAudio?.AddPhoneAudio(sip, phoneNumber);
+            await phoneAudio?.AddPhoneAudio(sip, phoneNumber, _cancellationTokenSource.Token);
         }
         /// <summary>
         /// Reply message to existing Messaging by using Message.

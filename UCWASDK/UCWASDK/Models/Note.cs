@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Enums;
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -17,9 +18,13 @@ namespace Microsoft.Skype.UCWA.Models
         [JsonProperty("type")]
         public NoteType Type { get; set; }
 
-        public async Task Update()
+        public Task Update()
         {
-            await HttpService.Post(Self, this);
+            return Update(HttpService.GetNewCancellationToken());
+        }
+        public Task Update(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Self, this, cancellationToken);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -36,9 +37,13 @@ namespace Microsoft.Skype.UCWA.Models
             internal ConversationLogTranscript[] conversationLogTranscripts { get; set; }               
         }
 
-        public async Task<NextConversationLogTranscripts> GetNextConversationLogTranscripts()
+        public Task<NextConversationLogTranscripts> GetNextConversationLogTranscripts()
         {
-            return await HttpService.Get<NextConversationLogTranscripts>(Links.nextConversationLogTranscripts);
+            return GetNextConversationLogTranscripts(HttpService.GetNewCancellationToken());
+        }
+        public Task<NextConversationLogTranscripts> GetNextConversationLogTranscripts(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<NextConversationLogTranscripts>(Links.nextConversationLogTranscripts, cancellationToken);
         }
     }
 }

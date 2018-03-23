@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -39,17 +40,27 @@ namespace Microsoft.Skype.UCWA.Models
 
         public async Task ChangeNumber(string number)
         {
+            await ChangeNumber(number, HttpService.GetNewCancellationToken());
+        }
+
+        public async Task ChangeNumber(string number, CancellationToken cancellationToken)
+        {
             if (string.IsNullOrEmpty(number))
                 return;
             
-            await HttpService.Post($"{Links.changeNumber.Href}?number={number}", null);
+            await HttpService.Post($"{Links.changeNumber.Href}?number={number}", null, cancellationToken);
         }
 
         public async Task ChangeVisibility(bool includeInContactCard)
         {
+            await ChangeVisibility(includeInContactCard, HttpService.GetNewCancellationToken());
+        }
+
+        public async Task ChangeVisibility(bool includeInContactCard, CancellationToken cancellationToken)
+        {
             var uri = includeInContactCard ? Links.changeVisibility.Href + "?includeInContactCard" : Links.changeVisibility.Href;
             
-            await HttpService.Post(uri, "");
+            await HttpService.Post(uri, "", cancellationToken);
         }
     }
 }

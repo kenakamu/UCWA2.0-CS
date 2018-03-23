@@ -1197,7 +1197,7 @@ namespace Microsoft.Skype.UCWA
                 {
                     var root = JsonConvert.DeserializeObject<Root>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Include });
                     var redirect = await root.GetRedirect(_cancellationTokenSource.Token);
-                    return await (redirect?.GetUser() ?? root.GetUser(_cancellationTokenSource.Token));
+                    return await (redirect?.GetUser(_cancellationTokenSource.Token) ?? root.GetUser(_cancellationTokenSource.Token));
                 }
                 else
                     return null;

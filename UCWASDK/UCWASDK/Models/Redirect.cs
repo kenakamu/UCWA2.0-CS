@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -22,16 +23,26 @@ namespace Microsoft.Skype.UCWA.Models
 
             [JsonProperty("xframe")]
             internal Xframe xframe { get; set; }
-        }        
-        
-        public async Task<User> GetUser()
-        {
-            return await HttpService.Get<User>(Links.user);
         }
 
-        public async Task<Xframe> GetXframe()
+        public Task<User> GetUser()
         {
-            return await HttpService.Get<Xframe>(Links.xframe);
+            return GetUser(HttpService.GetNewCancellationToken());
+        }
+
+        public  Task<User> GetUser(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<User>(Links.user, cancellationToken);
+        }
+
+        public Task<Xframe> GetXframe()
+        {
+            return GetXframe(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<Xframe> GetXframe(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Xframe>(Links.xframe, cancellationToken);
         }
     }
 }

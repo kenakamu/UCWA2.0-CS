@@ -1067,15 +1067,23 @@ namespace Microsoft.Skype.UCWA
             Messaging messaging = await conversation.GetMessaging(cancellationToken);
             await messaging?.SendMessage(text);
         }
-
         /// <summary>
         /// Reply message to existing Messaging by using MessagingInvitation.
         /// </summary>
         /// <param name="text">Reply message text.</param>
         /// <param name="messagingInvitation">MessagingInvitation</param>
-        public async Task ReplyMessage(string text, MessagingInvitation messagingInvitation)
+        public Task ReplyMessage(string text, MessagingInvitation messagingInvitation)
         {
-            Messaging messaging = await messagingInvitation.GetMessaging();
+            return ReplyMessage(text, messagingInvitation, _cancellationTokenSource.Token);
+        }
+        /// <summary>
+        /// Reply message to existing Messaging by using MessagingInvitation.
+        /// </summary>
+        /// <param name="text">Reply message text.</param>
+        /// <param name="messagingInvitation">MessagingInvitation</param>
+        public async Task ReplyMessage(string text, MessagingInvitation messagingInvitation, CancellationToken cancellationToken)
+        {
+            Messaging messaging = await messagingInvitation.GetMessaging(cancellationToken);
             await messaging?.SendMessage(text);
         }
         // <summary>

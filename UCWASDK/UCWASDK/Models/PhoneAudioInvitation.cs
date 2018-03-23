@@ -2,6 +2,7 @@
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -119,71 +120,136 @@ namespace Microsoft.Skype.UCWA.Models
 
         public async Task Accept()
         {
-            await HttpService.Post(Links.accept, "");
+            await Accept(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<AcceptedByContact> GetAcceptedByContact()
+        public async Task Accept(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<AcceptedByContact>(Links.acceptedByContact);
+            await HttpService.Post(Links.accept, "", cancellationToken);
+        }
+
+        public Task<AcceptedByContact> GetAcceptedByContact()
+        {
+            return GetAcceptedByContact(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<AcceptedByContact> GetAcceptedByContact(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<AcceptedByContact>(Links.acceptedByContact, cancellationToken);
         }
 
         public async Task Cancel()
         {
-            await HttpService.Post(Links.cancel, "");
+            await Cancel(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<Conversation> GetConversation()
+        public async Task Cancel(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<Conversation>(Links.conversation);
+            await HttpService.Post(Links.cancel, "", cancellationToken);
+        }
+
+        public Task<Conversation> GetConversation()
+        {
+            return GetConversation(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<Conversation> GetConversation(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Conversation>(Links.conversation, cancellationToken);
         }
 
         public async Task Decline(CallDeclineReason reason)
+        {
+            await Decline(reason, HttpService.GetNewCancellationToken());
+        }
+
+        public async Task Decline(CallDeclineReason reason, CancellationToken cancellationToken)
         {
             CallDecline callDecline = new CallDecline()
             {
                 Reason = reason
             };
-            await HttpService.Post(Links.decline, callDecline);
+            await HttpService.Post(Links.decline, callDecline, cancellationToken);
         }
 
-        public async Task<DerivedConversation> GetDerivedConversation()
+        public Task<DerivedConversation> GetDerivedConversation()
         {
-            return await HttpService.Get<DerivedConversation>(Links.derivedConversation);
+            return GetDerivedConversation(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<DerivedPhoneAudio> GetDerivedPhoneAudio()
+        public Task<DerivedConversation> GetDerivedConversation(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<DerivedPhoneAudio>(Links.derivedPhoneAudio);
+            return HttpService.Get<DerivedConversation>(Links.derivedConversation, cancellationToken);
         }
 
-        public async Task<ForwardedBy> GetForwardedBy()
+        public Task<DerivedPhoneAudio> GetDerivedPhoneAudio()
         {
-            return await HttpService.Get<ForwardedBy>(Links.forwardedBy);
+            return GetDerivedPhoneAudio(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<From> GetFrom()
+        public Task<DerivedPhoneAudio> GetDerivedPhoneAudio(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<From>(Links.from);
+            return HttpService.Get<DerivedPhoneAudio>(Links.derivedPhoneAudio, cancellationToken);
         }
 
-        public async Task<OnBehalfOf> GetOnBehalfOf()
+        public Task<ForwardedBy> GetForwardedBy()
         {
-            return await HttpService.Get<OnBehalfOf>(Links.onBehalfOf);
+            return GetForwardedBy(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<PhoneAudio> GetPhoneAudio()
+        public Task<ForwardedBy> GetForwardedBy(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<PhoneAudio>(Links.phoneAudio);
+            return  HttpService.Get<ForwardedBy>(Links.forwardedBy, cancellationToken);
         }
 
-        public async Task<To> GetTo()
+        public Task<From> GetFrom()
         {
-            return await HttpService.Get<To>(Links.to);
+            return GetFrom(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<TransferredBy> GetTransferredBy()
+        public Task<From> GetFrom(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<TransferredBy>(Links.transferredBy);
+            return HttpService.Get<From>(Links.from, cancellationToken);
+        }
+
+        public Task<OnBehalfOf> GetOnBehalfOf()
+        {
+            return GetOnBehalfOf(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<OnBehalfOf> GetOnBehalfOf(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<OnBehalfOf>(Links.onBehalfOf, cancellationToken);
+        }
+
+        public Task<PhoneAudio> GetPhoneAudio()
+        {
+            return GetPhoneAudio(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<PhoneAudio> GetPhoneAudio(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<PhoneAudio>(Links.phoneAudio, cancellationToken);
+        }
+
+        public Task<To> GetTo()
+        {
+            return GetTo(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<To> GetTo(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<To>(Links.to, cancellationToken);
+        }
+
+        public Task<TransferredBy> GetTransferredBy()
+        {
+            return GetTransferredBy(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<TransferredBy> GetTransferredBy(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<TransferredBy>(Links.transferredBy, cancellationToken);
         }
     }
 }

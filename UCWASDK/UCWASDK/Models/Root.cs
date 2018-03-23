@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -31,19 +32,34 @@ namespace Microsoft.Skype.UCWA.Models
             internal UCWAHref xframe { get; set; }
         }
 
-        public async Task<Redirect> GetRedirect()
+        public Task<Redirect> GetRedirect()
         {
-            return Links.redirect == null ? null : await HttpService.Get<Redirect>(Links.redirect, anonymous: true);
+            return GetRedirect(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<User> GetUser()
+        public async Task<Redirect> GetRedirect(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<User>(Links.user);
+            return Links.redirect == null ? null : await HttpService.Get<Redirect>(Links.redirect, anonymous: true, cancellationToken:cancellationToken);
         }
 
-        public async Task<Xframe> GetXframe()
+        public Task<User> GetUser()
         {
-            return await HttpService.Get<Xframe>(Links.xframe);
+            return GetUser(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<User> GetUser(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<User>(Links.user, cancellationToken);
+        }
+
+        public Task<Xframe> GetXframe()
+        {
+            return GetXframe(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<Xframe> GetXframe(CancellationToken cancellationToken)
+        {
+            return  HttpService.Get<Xframe>(Links.xframe, cancellationToken);
         }
     }
 }

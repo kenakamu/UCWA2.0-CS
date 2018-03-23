@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Enums;
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -38,25 +39,41 @@ namespace Microsoft.Skype.UCWA.Models
             internal ImmediateForwardToVoicemail immediateForwardToVoicemail { get; set; }
         }
 
-        public async Task<Contact> GetContact()
+        public Task<Contact> GetContact()
         {
-            return await HttpService.Get<Contact>(Links.contact);
+            return GetContact(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Contact> GetContact(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Contact>(Links.contact, cancellationToken);
         }
 
-        public async Task ImmediateForwardToContact()
+        public Task ImmediateForwardToContact()
+        {
+            return ImmediateForwardToContact(HttpService.GetNewCancellationToken());
+        }
+        public async Task ImmediateForwardToContact(CancellationToken cancellationToken)
         {
             var uri = Links.immediateForwardToContact.Href + "?target=" + Target;
-            await HttpService.Post(uri, "");
+            await HttpService.Post(uri, "", cancellationToken);
         }
 
-        public async Task ImmediateForwardToDelegates()
+        public Task ImmediateForwardToDelegates()
         {
-            await HttpService.Post(Links.immediateForwardToDelegates, "");
+            return ImmediateForwardToDelegates(HttpService.GetNewCancellationToken());
+        }
+        public async Task ImmediateForwardToDelegates(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.immediateForwardToDelegates, "", cancellationToken);
         }
 
-        public async Task ImmediateForwardToVoicemail()
+        public Task ImmediateForwardToVoicemail()
         {
-            await HttpService.Post(Links.immediateForwardToVoicemail, "");
+            return ImmediateForwardToVoicemail(HttpService.GetNewCancellationToken());
+        }
+        public async Task ImmediateForwardToVoicemail(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.immediateForwardToVoicemail, "", cancellationToken);
         }
     }
 }

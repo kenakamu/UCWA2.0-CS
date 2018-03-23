@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -15,14 +16,22 @@ namespace Microsoft.Skype.UCWA.Models
     /// </summary>
     public class Group2 : Group
     {
-        public async Task Update()
+        public Task Update()
         {
-            await HttpService.Put(Self, this, "2");
+            return Update(HttpService.GetNewCancellationToken());
+        }
+        public async Task Update(CancellationToken cancellationToken)
+        {
+            await HttpService.Put(Self, this, cancellationToken, "2");
         }
 
-        public async Task Delete()
+        public Task Delete()
         {
-            await HttpService.Delete(Self, "2");
+            return Delete(HttpService.GetNewCancellationToken());
+        }
+        public async Task Delete(CancellationToken cancellationToken)
+        {
+            await HttpService.Delete(Self, cancellationToken, "2");
         }
     }    
 }

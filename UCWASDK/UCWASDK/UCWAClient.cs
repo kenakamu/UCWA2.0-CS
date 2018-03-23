@@ -802,15 +802,22 @@ namespace Microsoft.Skype.UCWA
             MyGroupMemberships2 myGroupMemberships = await application.People.GetMyGroupMemberships(cancellationToken);
             await myGroupMemberships.RemoveContactFromAllGroups(sip, cancellationToken);
         }
-
         /// <summary>
         /// Create new group.
         /// </summary>
         /// <param name="groupName">Group name</param>
-        public async Task CreateGroup(string groupName)
+        public Task CreateGroup(string groupName)
         {
-            var myGroups = await application.People.GetMyGroups();
-            await myGroups.CreateGroup(groupName);
+            return CreateGroup(groupName, _cancellationTokenSource.Token);
+        }
+        /// <summary>
+        /// Create new group.
+        /// </summary>
+        /// <param name="groupName">Group name</param>
+        public async Task CreateGroup(string groupName, CancellationToken cancellationToken)
+        {
+            var myGroups = await application.People.GetMyGroups(cancellationToken);
+            await myGroups.CreateGroup(groupName, cancellationToken);
         }
 
         #endregion
@@ -896,16 +903,24 @@ namespace Microsoft.Skype.UCWA
         {
             await application.Communication.StartOnlineMeeting(subject, importance, cancellationToken);
         }
-
         /// <summary>
         /// Create Scheduled Online Meeting
         /// </summary>
         /// <param name="myOnlineMeeting">MyOnlineMeeting</param>
         /// <returns>Created MyOnlineMeeting</returns>
-        public async Task<MyOnlineMeeting> CreateScheduledOnlineMeeting(MyOnlineMeeting myOnlineMeeting)
+        public Task<MyOnlineMeeting> CreateScheduledOnlineMeeting(MyOnlineMeeting myOnlineMeeting)
+        {
+            return CreateScheduledOnlineMeeting(myOnlineMeeting, _cancellationTokenSource.Token);
+        }
+        /// <summary>
+        /// Create Scheduled Online Meeting
+        /// </summary>
+        /// <param name="myOnlineMeeting">MyOnlineMeeting</param>
+        /// <returns>Created MyOnlineMeeting</returns>
+        public async Task<MyOnlineMeeting> CreateScheduledOnlineMeeting(MyOnlineMeeting myOnlineMeeting, CancellationToken cancellationToken)
         {
             MyOnlineMeetings myOnlineMeetings = await application.OnlineMeetings.GetMyOnlineMeetings();
-            return await myOnlineMeetings.Create(myOnlineMeeting);
+            return await myOnlineMeetings.Create(myOnlineMeeting, cancellationToken);
         }
         /// <summary>
         /// Add instant message capability to existing conversation.

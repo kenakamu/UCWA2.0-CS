@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -41,14 +42,18 @@ namespace Microsoft.Skype.UCWA.Models
             internal DistributionGroup[] distributionGroups { get; set; }
         }
 
-        public async Task CreateGroup(string displayName)
+        public Task CreateGroup(string displayName)
+        {
+            return CreateGroup(displayName, HttpService.GetNewCancellationToken());
+        }
+        public Task CreateGroup(string displayName, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(displayName))
-                return;
+                return Task.FromResult<object>(null);
 
             JObject body = new JObject();
             body["displayName"] = displayName;
-            await HttpService.Post(Self, body, "2");
+            return HttpService.Post(Self, body, cancellationToken, "2");
         }
     }    
 }

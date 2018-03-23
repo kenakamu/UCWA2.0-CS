@@ -25,65 +25,100 @@ namespace Microsoft.Skype.UCWA.Models
 
             [JsonProperty("myContactsAndGroupsSubscription")]
             internal UCWAHref myContactsAndGroupsSubscription { get; set; }
-        
+
             [JsonProperty("myContacts")]
             internal UCWAHref myContacts { get; set; }
-        
+
             [JsonProperty("myGroupMemberships")]
             internal UCWAHref myGroupMemberships { get; set; }
-        
+
             [JsonProperty("myGroups")]
             internal UCWAHref myGroups { get; set; }
 
             [JsonProperty("myPrivacyRelationships")]
             internal UCWAHref myPrivacyRelationships { get; set; }
-        
+
             [JsonProperty("presenceSubscriptionMemberships")]
             internal UCWAHref presenceSubscriptionMemberships { get; set; }
-        
+
             [JsonProperty("presenceSubscriptions")]
             internal UCWAHref presenceSubscriptions { get; set; }
-        
+
             [JsonProperty("search")]
             internal UCWAHref search { get; set; }
-        
+
             [JsonProperty("subscribedContacts")]
             internal UCWAHref subscribedContacts { get; set; }
         }
 
-        public async Task<MyContactsAndGroupsSubscription> GetMyContactsAndGroupsSubscription()
+        public Task<MyContactsAndGroupsSubscription> GetMyContactsAndGroupsSubscription()
         {
-            return await HttpService.Get<MyContactsAndGroupsSubscription>(Links.myContactsAndGroupsSubscription);
+            return GetMyContactsAndGroupsSubscription(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<MyContacts> GetMyContacts()
+        public Task<MyContactsAndGroupsSubscription> GetMyContactsAndGroupsSubscription(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<MyContacts>(Links.myContacts);
+            return HttpService.Get<MyContactsAndGroupsSubscription>(Links.myContactsAndGroupsSubscription, cancellationToken);
         }
 
-        public async Task<MyGroupMemberships2> GetMyGroupMemberships()
+        public Task<MyContacts> GetMyContacts()
         {
-            return await HttpService.Get<MyGroupMemberships2>(Links.myGroupMemberships);
+            return GetMyContacts(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<MyGroups2> GetMyGroups()
+        public Task<MyContacts> GetMyContacts(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<MyGroups2>(Links.myGroups);
+            return HttpService.Get<MyContacts>(Links.myContacts, cancellationToken);
         }
 
-        public async Task<MyPrivacyRelationships> GetMyPrivacyRelationships()
+        public Task<MyGroupMemberships2> GetMyGroupMemberships()
         {
-            return await HttpService.Get<MyPrivacyRelationships>(Links.myPrivacyRelationships);
+            return GetMyGroupMemberships(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<PresenceSubscriptionMemberships> GetPresenceSubscriptionMemberships()
+        public Task<MyGroupMemberships2> GetMyGroupMemberships(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<PresenceSubscriptionMemberships>(Links.presenceSubscriptionMemberships);
+            return HttpService.Get<MyGroupMemberships2>(Links.myGroupMemberships, cancellationToken);
         }
 
-        public async Task<PresenceSubscriptions> GetPresenceSubscriptions()
+        public Task<MyGroups2> GetMyGroups()
         {
-            return await HttpService.Get<PresenceSubscriptions>(Links.presenceSubscriptions);
+            return GetMyGroups(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<MyGroups2> GetMyGroups(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<MyGroups2>(Links.myGroups, cancellationToken);
+        }
+
+        public Task<MyPrivacyRelationships> GetMyPrivacyRelationships()
+        {
+            return GetMyPrivacyRelationships(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<MyPrivacyRelationships> GetMyPrivacyRelationships(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<MyPrivacyRelationships>(Links.myPrivacyRelationships, cancellationToken);
+        }
+
+        public Task<PresenceSubscriptionMemberships> GetPresenceSubscriptionMemberships()
+        {
+            return GetPresenceSubscriptionMemberships(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<PresenceSubscriptionMemberships> GetPresenceSubscriptionMemberships(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<PresenceSubscriptionMemberships>(Links.presenceSubscriptionMemberships, cancellationToken);
+        }
+
+        public Task<PresenceSubscriptions> GetPresenceSubscriptions()
+        {
+            return GetPresenceSubscriptions(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<PresenceSubscriptions> GetPresenceSubscriptions(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<PresenceSubscriptions>(Links.presenceSubscriptions, cancellationToken);
         }
 
         public Task<Search2> Search(string query)
@@ -100,9 +135,14 @@ namespace Microsoft.Skype.UCWA.Models
             return await HttpService.Get<Search2>(uri, cancellationToken);
         }
 
-        public async Task<SubscribedContacts> GetSubscribedContacts()
+        public Task<SubscribedContacts> GetSubscribedContacts()
         {
-            return await HttpService.Get<SubscribedContacts>(Links.subscribedContacts);
-        }        
+            return GetSubscribedContacts(Links.subscribedContacts, HttpService.GetNewCancellationToken());
+        }
+
+        public Task<SubscribedContacts> GetSubscribedContacts(UCWAHref subscribedContacts, CancellationToken cancellationToken)
+        {
+            return HttpService.Get<SubscribedContacts>(subscribedContacts, cancellationToken);
+        }
     }
 }

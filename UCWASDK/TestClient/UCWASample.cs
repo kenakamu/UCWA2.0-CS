@@ -192,7 +192,7 @@ namespace TestClient
                 return;
             }
             presence.Availability = availability;
-            presence.Update(_cancellationTokenSource.Token).Wait();
+            presence.Update().Wait();
         }
 
         private void Location()

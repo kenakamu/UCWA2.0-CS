@@ -736,7 +736,7 @@ namespace Microsoft.Skype.UCWA
         /// <returns>Search result as Search2 model</returns>
         public async Task<Search2> Search(string query)
         {
-            return await application.People.Search(query);
+            return await application.People.Search(query, _cancellationTokenSource.Token);
         }
 
         /// <summary>
@@ -746,7 +746,7 @@ namespace Microsoft.Skype.UCWA
         /// <returns>PresenceSubscription</returns>
         public async Task<PresenceSubscription> SubscribeContactsChange(params string[] sips)
         {
-            PresenceSubscriptions presenceSubscriptions = await application.People.GetPresenceSubscriptions();
+            PresenceSubscriptions presenceSubscriptions = await application.People.GetPresenceSubscriptions(_cancellationTokenSource.Token);
             return await presenceSubscriptions.SubscribeToContactsPresence(sips, 30);
         }
 
@@ -756,7 +756,7 @@ namespace Microsoft.Skype.UCWA
         /// <param name="sips">sip names to unsubscribe.</param>
         public async Task UnSubscribeContactsChange(params string[] sips)
         {
-            PresenceSubscriptions presenceSubscriptions = await application.People.GetPresenceSubscriptions();
+            PresenceSubscriptions presenceSubscriptions = await application.People.GetPresenceSubscriptions(_cancellationTokenSource.Token);
             foreach (var sip in sips)
             {
                 PresenceSubscription presenceSubscription = presenceSubscriptions.Subscriptions.FirstOrDefault(x => x.Id == sip);
@@ -772,7 +772,7 @@ namespace Microsoft.Skype.UCWA
         /// <param name="groupId">Id of group.</param>
         public async Task AddContactToGroup(string sip, string groupId)
         {
-            MyGroupMemberships2 myGroupMemberships = await application.People.GetMyGroupMemberships();
+            MyGroupMemberships2 myGroupMemberships = await application.People.GetMyGroupMemberships(_cancellationTokenSource.Token);
             await myGroupMemberships.AddContact(sip, groupId);
         }
 
@@ -782,7 +782,7 @@ namespace Microsoft.Skype.UCWA
         /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
         public async Task RemoveContactFromAllGroup(string sip)
         {
-            MyGroupMemberships2 myGroupMemberships = await application.People.GetMyGroupMemberships();
+            MyGroupMemberships2 myGroupMemberships = await application.People.GetMyGroupMemberships(_cancellationTokenSource.Token);
             await myGroupMemberships.RemoveContactFromAllGroups(sip);
         }
 
@@ -1109,7 +1109,7 @@ namespace Microsoft.Skype.UCWA
             if (user == null)
                 return false;
 
-            application = await user.CreateApplication(agentName, Guid.NewGuid().ToString(), language);
+            application = await user.CreateApplication(agentName, Guid.NewGuid().ToString(), language, _cancellationTokenSource.Token);
 
             // Get host address
             Settings.Host = new Uri(user.Self).Scheme + "://" + new Uri(user.Self).Host;

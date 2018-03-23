@@ -51,7 +51,11 @@ namespace Microsoft.Skype.UCWA.Models
             internal UCWAHref typingParticipants { get; set; }
         }
 
-        public async Task AddMessaging(MessageFormat messageFormat, string message)
+        public Task AddMessaging(MessageFormat messageFormat, string message)
+        {
+            return AddMessaging(messageFormat, message, HttpService.GetNewCancellationToken());
+        }
+        public async Task AddMessaging(MessageFormat messageFormat, string message, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(message))
                 return;
@@ -75,7 +79,7 @@ namespace Microsoft.Skype.UCWA.Models
                 }
             };
 
-            await HttpService.Post(Links.addMessaging, messagingInvitation);
+            await HttpService.Post(Links.addMessaging, messagingInvitation, cancellationToken);
         }
 
         public Task<Conversation> GetConversation()

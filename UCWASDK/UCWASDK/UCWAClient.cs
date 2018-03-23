@@ -907,7 +907,7 @@ namespace Microsoft.Skype.UCWA
         public async Task AddMessaging(Conversation conversation, CancellationToken cancellationToken, string message = "")
         {
             Messaging messaging = await conversation.GetMessaging(cancellationToken);
-            await messaging?.AddMessaging(MessageFormat.Plain, message);
+            await messaging?.AddMessaging(MessageFormat.Plain, message, cancellationToken);
         }
         /// <summary>
         /// Add instant message capability to existing conversation by using OnlineMeetingInvitation.
@@ -927,7 +927,7 @@ namespace Microsoft.Skype.UCWA
         {
             Conversation conversation = await onlineMeetingInvitation.GetConversation(cancellationToken);
             Messaging messaging = await conversation?.GetMessaging(cancellationToken);
-            await messaging?.AddMessaging(MessageFormat.Plain, message);
+            await messaging?.AddMessaging(MessageFormat.Plain, message, cancellationToken);
         }
         /// <summary>
         /// Add a participant to existing conversation.

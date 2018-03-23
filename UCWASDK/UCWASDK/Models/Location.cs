@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -13,9 +14,13 @@ namespace Microsoft.Skype.UCWA.Models
         [JsonProperty("location")]
         public string Address { get; set; }
 
-        public async Task Update()
+        public Task Update()
         {
-            await HttpService.Post(Self, this);
+            return Update(HttpService.GetNewCancellationToken());
+        }
+        public async Task Update(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Self, this, cancellationToken);
         }
     }   
 }

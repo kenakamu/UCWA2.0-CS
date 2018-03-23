@@ -2,6 +2,7 @@
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -84,64 +85,112 @@ namespace Microsoft.Skype.UCWA.Models
             internal UCWAHref participantVideo { get; set; }
         }
 
-        public async Task<Contact> GetContact()
+        public Task<Contact> GetContact()
         {
-            return await HttpService.Get<Contact>(Links.contact);
+            return GetContact(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Contact> GetContact(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Contact>(Links.contact, cancellationToken);
         }
 
-        public async Task<byte[]> GetContactPhone()
+        public Task<byte[]> GetContactPhone()
         {
-            return await HttpService.GetBinary(Links.contactPhoto);
+            return GetContactPhone(HttpService.GetNewCancellationToken());
+        }
+        public async Task<byte[]> GetContactPhone(CancellationToken cancellationToken)
+        {
+            return await HttpService.GetBinary(Links.contactPhoto, cancellationToken);
         }
 
-        public async Task<ContactPresence> GetContactPresence()
+        public Task<ContactPresence> GetContactPresence()
         {
-            return await HttpService.Get<ContactPresence>(Links.contactPresence);
+            return GetContactPresence(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ContactPresence> GetContactPresence(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ContactPresence>(Links.contactPresence, cancellationToken);
         }
 
-        public async Task<Conversation> GetConversation()
+        public Task<Conversation> GetConversation()
         {
-            return await HttpService.Get<Conversation>(Links.conversation);
+            return GetConversation(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Conversation> GetConversation(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Conversation>(Links.conversation, cancellationToken);
         }
 
-        public async Task Eject()
+        public Task Eject()
         {
-            await HttpService.Post(Links.eject, "");
+            return Eject(HttpService.GetNewCancellationToken());
+        }
+        public async Task Eject(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.eject, "", cancellationToken);
         }
 
-        public async Task<Me> GetMe()
+        public Task<Me> GetMe()
         {
-            return await HttpService.Get<Me>(Links.me);
+            return GetMe(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Me> GetMe(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Me>(Links.me, cancellationToken);
         }
 
-        public async Task<ParticipantApplicationSharing> GetParticipantApplicationSharing()
+        public Task<ParticipantApplicationSharing> GetParticipantApplicationSharing()
         {
-            return await HttpService.Get<ParticipantApplicationSharing>(Links.participantApplicationSharing);
+            return GetParticipantApplicationSharing(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ParticipantApplicationSharing> GetParticipantApplicationSharing(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ParticipantApplicationSharing>(Links.participantApplicationSharing, cancellationToken);
         }
 
-        public async Task<ParticipantAudio> GetParticipantAudio()
+        public Task<ParticipantAudio> GetParticipantAudio()
         {
-            return await HttpService.Get<ParticipantAudio>(Links.participantAudio);
+            return GetParticipantAudio(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ParticipantAudio> GetParticipantAudio(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ParticipantAudio>(Links.participantAudio, cancellationToken);
         }
 
-        public async Task<ParticipantDataCollaboration> GetParticipantDataCollaboration()
+        public Task<ParticipantDataCollaboration> GetParticipantDataCollaboration()
         {
-            return await HttpService.Get<ParticipantDataCollaboration>(Links.participantDataCollaboration);
+            return GetParticipantDataCollaboration(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ParticipantDataCollaboration> GetParticipantDataCollaboration(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ParticipantDataCollaboration>(Links.participantDataCollaboration, cancellationToken);
         }
 
-        public async Task<ParticipantMessaging> GetParticipantMessaging()
+        public Task<ParticipantMessaging> GetParticipantMessaging()
         {
-            return await HttpService.Get<ParticipantMessaging>(Links.participantMessaging);
+            return GetParticipantMessaging(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ParticipantMessaging> GetParticipantMessaging(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ParticipantMessaging>(Links.participantMessaging, cancellationToken);
         }
 
-        public async Task<ParticipantPanoramicVideo> GetParticipantPanoramicVideo()
+        public Task<ParticipantPanoramicVideo> GetParticipantPanoramicVideo()
         {
-            return await HttpService.Get<ParticipantPanoramicVideo>(Links.participantPanoramicVideo);
+            return GetParticipantPanoramicVideo(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ParticipantPanoramicVideo> GetParticipantPanoramicVideo(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ParticipantPanoramicVideo>(Links.participantPanoramicVideo, cancellationToken);
         }
 
-        public async Task<ParticipantVideo> GetParticipantVideo()
+        public Task<ParticipantVideo> GetParticipantVideo()
         {
-            return await HttpService.Get<ParticipantVideo>(Links.participantVideo);
+            return GetParticipantVideo(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ParticipantVideo> GetParticipantVideo(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ParticipantVideo>(Links.participantVideo, cancellationToken);
         }
     }
 }

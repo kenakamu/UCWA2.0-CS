@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -9,7 +10,7 @@ namespace Microsoft.Skype.UCWA.Models
     /// The version two supports adding single contact to a particular group and removing a contact from the buddy list (all groups associated) 
     /// </summary>
     public class MyGroupMemberships2 : UCWAModelBase
-    {        
+    {
         [JsonProperty("_links")]
         internal InternalLinks Links { get; set; }
 
@@ -37,24 +38,32 @@ namespace Microsoft.Skype.UCWA.Models
             internal MyGroupMembership2[] groupMembership { get; set; }
         }
 
-        public async Task AddContact(string sipName, string groupId)
+        public Task AddContact(string sipName, string groupId)
+        {
+            return AddContact(sipName, groupId, HttpService.GetNewCancellationToken());
+        }
+        public Task AddContact(string sipName, string groupId, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(sipName) || string.IsNullOrEmpty(groupId))
-                return;
+                return Task.FromResult<object>(null);
 
             var uri = Self + "?contactUri=" + sipName + "&groupId=" + groupId;
 
-            await HttpService.Post(uri, "", "2");
+            return HttpService.Post(uri, "", cancellationToken, "2");
         }
 
-        public async Task RemoveContactFromAllGroups(string sipName)
+        public Task RemoveContactFromAllGroups(string sipName)
+        {
+            return RemoveContactFromAllGroups(sipName, HttpService.GetNewCancellationToken());
+        }
+        public Task RemoveContactFromAllGroups(string sipName, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(sipName))
-                return;
-            
+                return Task.FromResult<object>(null);
+
             var uri = Links.removeContactFromAllGroups.Href + "?contactUri=" + sipName;
 
-            await HttpService.Post(uri, "", "2");
+            return HttpService.Post(uri, "", cancellationToken, "2");
         }
     }
 }

@@ -770,20 +770,37 @@ namespace Microsoft.Skype.UCWA
         /// </summary>
         /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
         /// <param name="groupId">Id of group.</param>
-        public async Task AddContactToGroup(string sip, string groupId)
+        public Task AddContactToGroup(string sip, string groupId)
         {
-            MyGroupMemberships2 myGroupMemberships = await application.People.GetMyGroupMemberships(_cancellationTokenSource.Token);
-            await myGroupMemberships.AddContact(sip, groupId);
+            return AddContactToGroup(sip, groupId, _cancellationTokenSource.Token);
+        }
+        /// <summary>
+        /// Add a contact to specified group.
+        /// </summary>
+        /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
+        /// <param name="groupId">Id of group.</param>
+        public async Task AddContactToGroup(string sip, string groupId, CancellationToken cancellationToken)
+        {
+            MyGroupMemberships2 myGroupMemberships = await application.People.GetMyGroupMemberships(cancellationToken);
+            await myGroupMemberships.AddContact(sip, groupId, cancellationToken);
         }
 
         /// <summary>
         /// Removed a contact from all groups.
         /// </summary>
         /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
-        public async Task RemoveContactFromAllGroup(string sip)
+        public Task RemoveContactFromAllGroup(string sip)
         {
-            MyGroupMemberships2 myGroupMemberships = await application.People.GetMyGroupMemberships(_cancellationTokenSource.Token);
-            await myGroupMemberships.RemoveContactFromAllGroups(sip);
+            return RemoveContactFromAllGroup(sip, _cancellationTokenSource.Token);
+        }
+        /// <summary>
+        /// Removed a contact from all groups.
+        /// </summary>
+        /// <param name="sip">Contact's sip. Use Uri property for Contact object.</param>
+        public async Task RemoveContactFromAllGroup(string sip, CancellationToken cancellationToken)
+        {
+            MyGroupMemberships2 myGroupMemberships = await application.People.GetMyGroupMemberships(cancellationToken);
+            await myGroupMemberships.RemoveContactFromAllGroups(sip, cancellationToken);
         }
 
         /// <summary>

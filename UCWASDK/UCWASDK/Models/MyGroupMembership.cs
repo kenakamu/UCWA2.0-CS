@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -9,7 +10,7 @@ namespace Microsoft.Skype.UCWA.Models
     /// This resource captures a unique pair of contact and group. If a contact appears in multiple groups, there will be a separate resource for each membership of this contact. 
     /// </summary>
     public class MyGroupMembership : UCWAModelBase
-    {        
+    {
         [JsonProperty("_links")]
         internal InternalLinks Links { get; set; }
 
@@ -23,35 +24,51 @@ namespace Microsoft.Skype.UCWA.Models
 
             [JsonProperty("contact")]
             internal UCWAHref contact { get; set; }
-   
+
             [JsonProperty("defaultGroup")]
             internal UCWAHref defaultGroup { get; set; }
-   
+
             [JsonProperty("group")]
             internal UCWAHref group { get; set; }
-   
+
             [JsonProperty("pinnedGroup")]
             internal UCWAHref pinnedGroup { get; set; }
         }
 
-        public async Task<Contact> GetContact()
+        public Task<Contact> GetContact()
         {
-            return await HttpService.Get<Contact>(Links.contact);
+            return GetContact(HttpService.GetNewCancellationToken());
+        }
+        public Task<Contact> GetContact(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Contact>(Links.contact, cancellationToken);
         }
 
-        public async Task<DefaultGroup> GetDefaultGroup()
+        public Task<DefaultGroup> GetDefaultGroup()
         {
-            return await HttpService.Get<DefaultGroup>(Links.defaultGroup);
+            return GetDefaultGroup(HttpService.GetNewCancellationToken());
+        }
+        public Task<DefaultGroup> GetDefaultGroup(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<DefaultGroup>(Links.defaultGroup, cancellationToken);
         }
 
-        public async Task<Group> GetGroup()
+        public Task<Group> GetGroup()
         {
-            return await HttpService.Get<Group>(Links.group);
+            return GetGroup(HttpService.GetNewCancellationToken());
+        }
+        public Task<Group> GetGroup(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Group>(Links.group, cancellationToken);
         }
 
-        public async Task<PinnedGroup> GetPinnedGroup()
+        public Task<PinnedGroup> GetPinnedGroup()
         {
-            return await HttpService.Get<PinnedGroup>(Links.pinnedGroup);
+            return GetPinnedGroup(HttpService.GetNewCancellationToken());
+        }
+        public Task<PinnedGroup> GetPinnedGroup(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<PinnedGroup>(Links.pinnedGroup, cancellationToken);
         }
     }
 }

@@ -747,7 +747,7 @@ namespace Microsoft.Skype.UCWA
         public async Task<PresenceSubscription> SubscribeContactsChange(params string[] sips)
         {
             PresenceSubscriptions presenceSubscriptions = await application.People.GetPresenceSubscriptions(_cancellationTokenSource.Token);
-            return await presenceSubscriptions.SubscribeToContactsPresence(sips, 30);
+            return await presenceSubscriptions.SubscribeToContactsPresence(_cancellationTokenSource.Token, sips, 30);
         }
 
         /// <summary>

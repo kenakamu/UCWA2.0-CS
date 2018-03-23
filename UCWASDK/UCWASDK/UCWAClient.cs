@@ -1045,7 +1045,7 @@ namespace Microsoft.Skype.UCWA
         public async Task ReplyMessage(string text, Message message, CancellationToken cancellationToken)
         {
             Messaging messaging = await message.GetMessaging(cancellationToken);
-            await messaging?.SendMessage(text);
+            await messaging?.SendMessage(text, cancellationToken);
         }
 
         /// <summary>
@@ -1065,7 +1065,7 @@ namespace Microsoft.Skype.UCWA
         public async Task ReplyMessage(string text, Conversation conversation, CancellationToken cancellationToken)
         {
             Messaging messaging = await conversation.GetMessaging(cancellationToken);
-            await messaging?.SendMessage(text);
+            await messaging?.SendMessage(text, cancellationToken);
         }
         /// <summary>
         /// Reply message to existing Messaging by using MessagingInvitation.
@@ -1084,7 +1084,7 @@ namespace Microsoft.Skype.UCWA
         public async Task ReplyMessage(string text, MessagingInvitation messagingInvitation, CancellationToken cancellationToken)
         {
             Messaging messaging = await messagingInvitation.GetMessaging(cancellationToken);
-            await messaging?.SendMessage(text);
+            await messaging?.SendMessage(text, cancellationToken);
         }
         // <summary>
         /// Reply message to existing Messaging by using OnlineMeetingInvitation.
@@ -1104,7 +1104,7 @@ namespace Microsoft.Skype.UCWA
         {
             Conversation conversation = await onlineMeetingInvitation.GetConversation(cancellationToken);
             Messaging messaging = await conversation?.GetMessaging(cancellationToken);
-            await messaging?.SendMessage(text);
+            await messaging?.SendMessage(text, cancellationToken);
         }
 
         #endregion

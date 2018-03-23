@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Enums;
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -41,19 +42,31 @@ namespace Microsoft.Skype.UCWA.Models
             internal UnmuteAudio unmuteAudio { get; set; }
         }
 
-        public async Task MuteAudio()
+        public Task MuteAudio()
         {
-            await HttpService.Post(Links.muteAudio, "");
+            return MuteAudio(HttpService.GetNewCancellationToken());
+        }
+        public Task MuteAudio(CancellationToken cancellationToken)
+        {
+             return HttpService.Post(Links.muteAudio, "", cancellationToken);
         }
 
-        public async Task<Participant> GetParticipant()
+        public Task<Participant> GetParticipant()
         {
-            return await HttpService.Get<Participant>(Links.participant);
+            return GetParticipant(HttpService.GetNewCancellationToken());
+        }
+        public Task<Participant> GetParticipant(CancellationToken cancellationToken)
+        {
+            return  HttpService.Get<Participant>(Links.participant, cancellationToken);
         }
 
-        public async Task UnmuteAudio()
+        public Task UnmuteAudio()
         {
-            await HttpService.Post(Links.unmuteAudio, "");
+            return UnmuteAudio(HttpService.GetNewCancellationToken());
+        }
+        public Task UnmuteAudio(CancellationToken cancellationToken)
+        {
+             return HttpService.Post(Links.unmuteAudio, "", cancellationToken);
         }
     }
 }

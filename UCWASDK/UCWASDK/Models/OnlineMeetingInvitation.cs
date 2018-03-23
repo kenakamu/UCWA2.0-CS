@@ -50,7 +50,7 @@ namespace Microsoft.Skype.UCWA.Models
         public string CustomContent { get { return Links.customContent == null ? "" : WebUtility.UrlDecode(Links.customContent.Href.Split(',')[1]); } }
 
         [JsonIgnore]
-        public string Message { get { return Links.message == null ? "" :  WebUtility.UrlDecode(Links.message.Href.Split(',')[1]); } }
+        public string Message { get { return Links.message == null ? "" : WebUtility.UrlDecode(Links.message.Href.Split(',')[1]); } }
 
 
         [JsonProperty("_embedded")]
@@ -68,32 +68,32 @@ namespace Microsoft.Skype.UCWA.Models
             internal UCWAHref self { get; set; }
 
             [JsonProperty("customContent")]
-            internal UCWAHref customContent { get; set; }            
+            internal UCWAHref customContent { get; set; }
 
             [JsonProperty("message")]
             internal UCWAHref message { get; set; }
-            
+
             [JsonProperty("from")]
             internal UCWAHref from { get; set; }
-  
+
             [JsonProperty("accept")]
             internal Accept accept { get; set; }
-  
+
             [JsonProperty("acceptedByContact")]
             internal UCWAHref acceptedByContact { get; set; }
-  
+
             [JsonProperty("cancel")]
             internal Cancel cancel { get; set; }
-  
+
             [JsonProperty("conversation")]
             internal UCWAHref conversation { get; set; }
-  
+
             [JsonProperty("decline")]
             internal UCWAHref decline { get; set; }
-  
+
             [JsonProperty("onBehalfOf")]
             internal UCWAHref onBehalfOf { get; set; }
-  
+
             [JsonProperty("to")]
             internal UCWAHref to { get; set; }
         }
@@ -101,55 +101,83 @@ namespace Microsoft.Skype.UCWA.Models
         internal class InternalEmbedded
         {
             [JsonProperty("from")]
-            internal From from { get; set; }               
+            internal From from { get; set; }
         }
 
-        public async Task Accept()
+        public Task Accept()
         {
-            await HttpService.Post(Links.accept, "");
+            return Accept(HttpService.GetNewCancellationToken());
+        }
+        public Task Accept(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.accept, "", cancellationToken);
         }
 
-        public async Task<AcceptedByContact> GetAcceptedByContact()
+        public Task<AcceptedByContact> GetAcceptedByContact()
         {
-            return await HttpService.Get<AcceptedByContact>(Links.acceptedByContact);
+            return GetAcceptedByContact(HttpService.GetNewCancellationToken());
+        }
+        public Task<AcceptedByContact> GetAcceptedByContact(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<AcceptedByContact>(Links.acceptedByContact, cancellationToken);
         }
 
-        public async Task Cancel()
+        public Task Cancel()
         {
-            await HttpService.Post(Links.cancel, "");
+            return Cancel(HttpService.GetNewCancellationToken());
+        }
+        public Task Cancel(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.cancel, "", cancellationToken);
         }
 
         public Task<Conversation> GetConversation()
         {
             return GetConversation(HttpService.GetNewCancellationToken());
         }
-        public async Task<Conversation> GetConversation(CancellationToken cancellationToken)
+        public Task<Conversation> GetConversation(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<Conversation>(Links.conversation, cancellationToken);
+            return HttpService.Get<Conversation>(Links.conversation, cancellationToken);
         }
 
-        public async Task Decline(CallDeclineReason reason)
+        public Task Decline(CallDeclineReason reason)
+        {
+            return Decline(reason, HttpService.GetNewCancellationToken());
+        }
+        public Task Decline(CallDeclineReason reason, CancellationToken cancellationToken)
         {
             CallDecline callDecline = new CallDecline()
             {
-                 Reason = reason
+                Reason = reason
             };
-            await HttpService.Post(Links.decline, callDecline);
-        }
-        
-        public async Task<From> GetFrom()
-        {
-            return await HttpService.Get<From>(Links.from);
+            return HttpService.Post(Links.decline, callDecline, cancellationToken);
         }
 
-        public async Task<OnBehalfOf> GetOnBehalfOf()
+        public Task<From> GetFrom()
         {
-            return await HttpService.Get<OnBehalfOf>(Links.onBehalfOf);
+            return GetFrom(HttpService.GetNewCancellationToken());
+        }
+        public Task<From> GetFrom(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<From>(Links.from, cancellationToken);
         }
 
-        public async Task<To> GetTo()
+        public Task<OnBehalfOf> GetOnBehalfOf()
         {
-            return await HttpService.Get<To>(Links.to);
+            return GetOnBehalfOf(HttpService.GetNewCancellationToken());
+        }
+        public Task<OnBehalfOf> GetOnBehalfOf(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<OnBehalfOf>(Links.onBehalfOf, cancellationToken);
+        }
+
+        public Task<To> GetTo()
+        {
+            return GetTo(HttpService.GetNewCancellationToken());
+        }
+        public Task<To> GetTo(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<To>(Links.to, cancellationToken);
         }
     }
 }

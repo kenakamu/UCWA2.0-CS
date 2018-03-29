@@ -3,6 +3,7 @@ using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -58,17 +59,29 @@ namespace Microsoft.Skype.UCWA.Models
             internal StartPhoneAudio2 startPhoneAudio { get; set; }
         }
 
-        public async Task<ConversationLogs> GetConversationLogs()
+        public Task<ConversationLogs> GetConversationLogs()
         {
-            return await HttpService.Get<ConversationLogs>(Links.conversationLogs);
+            return GetConversationLogs(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ConversationLogs> GetConversationLogs(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ConversationLogs>(Links.conversationLogs, cancellationToken);
         }
 
-        public async Task<Conversations> GetConversations()
+        public Task<Conversations> GetConversations()
         {
-            return await HttpService.Get<Conversations>(Links.conversations);
+            return GetConversations(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Conversations> GetConversations(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Conversations>(Links.conversations, cancellationToken);
         }
         
-        public async Task JoinOnlineMeeting(string onlineMeetingUri, string subject, Importance importance)
+        public Task JoinOnlineMeeting(string onlineMeetingUri, string subject, Importance importance)
+        {
+            return JoinOnlineMeeting(onlineMeetingUri, subject, importance, HttpService.GetNewCancellationToken());
+        }
+        public async Task JoinOnlineMeeting(string onlineMeetingUri, string subject, Importance importance, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(onlineMeetingUri) || string.IsNullOrEmpty(subject))
                 return;
@@ -80,15 +93,23 @@ namespace Microsoft.Skype.UCWA.Models
             body["operationid"] = Guid.NewGuid();
             body["threadid"] = Guid.NewGuid();
 
-            await HttpService.Post(Links.joinOnlineMeeting, body);
+            await HttpService.Post(Links.joinOnlineMeeting, body, cancellationToken);
         }
 
-        public async Task<MissedItems> GetMissedItems()
+        public Task<MissedItems> GetMissedItems()
         {
-            return await HttpService.Get<MissedItems>(Links.missedItems);
+            return GetMissedItems(HttpService.GetNewCancellationToken());
+        }
+        public async Task<MissedItems> GetMissedItems(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<MissedItems>(Links.missedItems, cancellationToken);
         }
 
-        public async Task<string> StartMessaging(string sipName, string subject, Importance importance, string message)
+        public Task<string> StartMessaging(string sipName, string subject, Importance importance, string message)
+        {
+            return StartMessaging(sipName, subject, importance, message, HttpService.GetNewCancellationToken());
+        }
+        public async Task<string> StartMessaging(string sipName, string subject, Importance importance, string message, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(sipName))
                 return "";
@@ -113,15 +134,19 @@ namespace Microsoft.Skype.UCWA.Models
                 }
             };
 
-            return await HttpService.Post(Links.startMessaging, invitation);
+            return await HttpService.Post(Links.startMessaging, invitation, cancellationToken);
         }
 
-        public async Task<string> StartOnlineMeeting(string subject, Importance importance)
+        public Task<string> StartOnlineMeeting(string subject, Importance importance)
+        {
+            return StartOnlineMeeting(subject, importance, HttpService.GetNewCancellationToken());
+        }
+        public async Task<string> StartOnlineMeeting(string subject, Importance importance, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(subject))
                 return "";
 
-            OnlineMeetingInvitation invitation = new Models.OnlineMeetingInvitation()
+            OnlineMeetingInvitation invitation = new OnlineMeetingInvitation()
             {
                 Subject = subject,
                 Importance = importance,
@@ -129,15 +154,19 @@ namespace Microsoft.Skype.UCWA.Models
                 ThreadId = Guid.NewGuid().ToString()
             };
 
-            return await HttpService.Post(Links.startOnlineMeeting, invitation);
+            return await HttpService.Post(Links.startOnlineMeeting, invitation, cancellationToken);
         }
 
-        public async Task StartPhoneAudio(string phoneNumber, string to, string subject, Importance importance)
+        public Task StartPhoneAudio(string phoneNumber, string to, string subject, Importance importance)
+        {
+            return StartPhoneAudio(phoneNumber, to, subject, importance, HttpService.GetNewCancellationToken());
+        }
+        public async Task StartPhoneAudio(string phoneNumber, string to, string subject, Importance importance, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(to) || string.IsNullOrEmpty(subject))
                 return;
             
-            PhoneAudioInvitation invitation = new Models.PhoneAudioInvitation()
+            PhoneAudioInvitation invitation = new PhoneAudioInvitation()
             {
                 PhoneNumber = phoneNumber,
                 To = to,
@@ -147,12 +176,16 @@ namespace Microsoft.Skype.UCWA.Models
                 ThreadId = Guid.NewGuid().ToString()
             };
  
-            await HttpService.Post(Links.startPhoneAudio, invitation);
+            await HttpService.Post(Links.startPhoneAudio, invitation, cancellationToken);
         }
 
-        public async Task Update()
+        public Task Update()
         {
-            await HttpService.Put(Self, this);
+            return Update(HttpService.GetNewCancellationToken());
+        }
+        public async Task Update(CancellationToken cancellationToken)
+        {
+            await HttpService.Put(Self, this, cancellationToken);
         }
     }
 }

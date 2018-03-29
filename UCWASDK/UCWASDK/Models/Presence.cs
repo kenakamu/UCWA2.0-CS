@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Enums;
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -19,7 +20,12 @@ namespace Microsoft.Skype.UCWA.Models
 
         public async Task Update()
         {
-            await HttpService.Post(Self, this);
+            await Update(HttpService.GetNewCancellationToken());
+        }
+
+        public async Task Update(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Self, this, cancellationToken);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Enums;
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -33,27 +34,39 @@ namespace Microsoft.Skype.UCWA.Models
 
             [JsonProperty("muteVideo")]
             internal MuteVideo muteVideo { get; set; }
-   
+
             [JsonProperty("participant")]
             internal UCWAHref participant { get; set; }
-   
+
             [JsonProperty("unmuteVideo")]
             internal UnmuteVideo unmuteVideo { get; set; }
         }
 
-        public async Task MuteVideo()
+        public Task MuteVideo()
         {
-            await HttpService.Post(Links.muteVideo, "");
+            return MuteVideo(HttpService.GetNewCancellationToken());
+        }
+        public Task MuteVideo(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.muteVideo, "", cancellationToken);
         }
 
-        public async Task<Participant> GetParticipant()
+        public Task<Participant> GetParticipant()
         {
-            return await HttpService.Get<Participant>(Links.participant);
+            return GetParticipant(HttpService.GetNewCancellationToken());
+        }
+        public Task<Participant> GetParticipant(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Participant>(Links.participant, cancellationToken);
         }
 
-        public async Task UnmuteVideo()
+        public Task UnmuteVideo()
         {
-            await HttpService.Post(Links.unmuteVideo, "");
+            return UnmuteVideo(HttpService.GetNewCancellationToken());
+        }
+        public Task UnmuteVideo(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.unmuteVideo, "", cancellationToken);
         }
     }
 }

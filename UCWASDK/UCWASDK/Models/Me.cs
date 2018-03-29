@@ -3,6 +3,7 @@ using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -63,47 +64,73 @@ namespace Microsoft.Skype.UCWA.Models
             [JsonProperty("reportMyActivity")]
             internal ReportMyActivity reportMyActivity { get; set; }
         }
+        public Task<Me> Get()
+        {
+            return Get(HttpService.GetNewCancellationToken());
+        }
 
-        public async Task<Me> Get()
+        public async Task<Me> Get(CancellationToken cancellationToken)
         {
             var uri = Self;
-            return await HttpService.Get<Me>(uri);
+            return await HttpService.Get<Me>(uri, cancellationToken);
         }
-
-        public async Task<CallForwardingSettings> GetCallForwardingSettings()
+        public Task<CallForwardingSettings> GetCallForwardingSettings()
         {
-            return await HttpService.Get<CallForwardingSettings>(Links.callForwardingSettings);
+            return GetCallForwardingSettings(HttpService.GetNewCancellationToken());
         }
-
-        public async Task<Location> GetLocation()
+        public async Task<CallForwardingSettings> GetCallForwardingSettings(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<Location>(Links.location);
+            return await HttpService.Get<CallForwardingSettings>(Links.callForwardingSettings, cancellationToken);
         }
-
-        public async Task<Note> GetNote()
+        public Task<Location> GetLocation()
         {
-            return await HttpService.Get<Note>(Links.note);
+            return GetLocation(HttpService.GetNewCancellationToken());
         }
-
-        public async Task<Phone[]> GetPhones()
+        public async Task<Location> GetLocation(CancellationToken cancellationToken)
         {
-            UCWAPhones ucwaPhones = await HttpService.Get<UCWAPhones>(Links.phones);
+            return await HttpService.Get<Location>(Links.location, cancellationToken);
+        }
+        public Task<Note> GetNote()
+        {
+            return GetNote(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Note> GetNote(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Note>(Links.note, cancellationToken);
+        }
+        public Task<Phone[]> GetPhones()
+        {
+            return GetPhones(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Phone[]> GetPhones(CancellationToken cancellationToken)
+        {
+            UCWAPhones ucwaPhones = await HttpService.Get<UCWAPhones>(Links.phones, cancellationToken);
             if (ucwaPhones == null)
                 ucwaPhones = new UCWAPhones();
             return ucwaPhones.Phones;
         }
-
-        public async Task<byte[]> GetPhoto()
+        public Task<byte[]> GetPhoto()
         {
-            return await HttpService.GetBinary(Links.photo);
+            return GetPhoto(HttpService.GetNewCancellationToken());
+        }
+        public async Task<byte[]> GetPhoto(CancellationToken cancellationToken)
+        {
+            return await HttpService.GetBinary(Links.photo, cancellationToken);
+        }
+        public Task<Presence> GetPresence()
+        {
+            return GetPresence(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Presence> GetPresence(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Presence>(Links.presence, cancellationToken);
         }
 
-        public async Task<Presence> GetPresencs()
+        public Task MakeMeAvailable(Availability availability, bool supportMessage, bool supportAudio, bool supportPlainText, bool supportHtmlFormat, string phoneNumber)
         {
-            return await HttpService.Get<Presence>(Links.presence);
+            return MakeMeAvailable(availability, supportMessage, supportAudio, supportPlainText, supportHtmlFormat, phoneNumber, HttpService.GetNewCancellationToken());
         }
-
-        public async Task MakeMeAvailable(Availability availability, bool supportMessage, bool supportAudio, bool supportPlainText, bool supportHtmlFormat, string phoneNumber)
+        public async Task MakeMeAvailable(Availability availability, bool supportMessage, bool supportAudio, bool supportPlainText, bool supportHtmlFormat, string phoneNumber, CancellationToken cancellationToken)
         {
             JArray supportedModalities = new JArray();
             JArray supportedMessageFormats = new JArray();
@@ -116,18 +143,24 @@ namespace Microsoft.Skype.UCWA.Models
             if (supportHtmlFormat)
                 supportedMessageFormats.Add(MessageFormat.Html.ToString());
 
-            JObject body = new JObject();
-            body["SupportedModalities"] = supportedModalities;
-            body["SupportedMessageFormats"] = supportedMessageFormats;
-            body["SignInAs"] = availability.ToString();
-            body["phoneNumber"] = phoneNumber;
+            JObject body = new JObject
+            {
+                ["SupportedModalities"] = supportedModalities,
+                ["SupportedMessageFormats"] = supportedMessageFormats,
+                ["SignInAs"] = availability.ToString(),
+                ["phoneNumber"] = phoneNumber
+            };
 
-            await HttpService.Post(Links.makeMeAvailable, body);
+            await HttpService.Post(Links.makeMeAvailable, body, cancellationToken);
         }
 
-        public async Task ReportMyActivity()
+        public Task ReportMyActivity()
         {
-            await HttpService.Post(Links.reportMyActivity, "");
+            return ReportMyActivity(HttpService.GetNewCancellationToken());
+        }
+        public async Task ReportMyActivity(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.reportMyActivity, "", cancellationToken);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Skype.UCWA.Services;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -9,9 +10,13 @@ namespace Microsoft.Skype.UCWA.Models
     /// </summary>
     public class MyGroupMembership2 : MyGroupMembership
     {        
-        public async Task Delete()
+        public Task Delete()
         {
-            await HttpService.Delete(Self, "2");
+            return Delete(HttpService.GetNewCancellationToken());
+        }
+        public Task Delete(CancellationToken cancellationToken)
+        {
+            return HttpService.Delete(Self, cancellationToken, "2");
         }
     }
 }

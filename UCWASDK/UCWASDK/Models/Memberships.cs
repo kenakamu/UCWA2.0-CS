@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -23,14 +24,18 @@ namespace Microsoft.Skype.UCWA.Models
             internal PresenceSubscriptionMembership presenceSubscriptionMembership { get; set; }               
         }        
 
-        public async Task<PresenceSubscriptionMemberships> Update(string[] contactUris)
+        public Task<PresenceSubscriptionMemberships> Update(string[] contactUris)
         {
-            if (contactUris == null || contactUris.Count() == 0)
+            return Update(contactUris, HttpService.GetNewCancellationToken());
+        }
+        public async Task<PresenceSubscriptionMemberships> Update(string[] contactUris, CancellationToken cancellationToken)
+        {
+            if (contactUris == null || !contactUris.Any())
                 return null;
 
             JObject body = new JObject();
             body["contactUris"] = new JArray(contactUris);
-            return await HttpService.Post<PresenceSubscriptionMemberships>(Self, body);
+            return await HttpService.Post<PresenceSubscriptionMemberships>(Self, body, cancellationToken);
         }
     }
 }

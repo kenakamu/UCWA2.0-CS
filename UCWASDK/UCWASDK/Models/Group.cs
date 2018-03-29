@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -40,28 +41,44 @@ namespace Microsoft.Skype.UCWA.Models
             internal SubscribeToGroupPresence subscribeToGroupPresence { get; set; }
         }
 
-        public async Task<DistributionGroup> ExpandDistributionGroup()
+        public Task<DistributionGroup> ExpandDistributionGroup()
         {
-            return await HttpService.Get<DistributionGroup>(Links.expandDistributionGroup);
+            return ExpandDistributionGroup(HttpService.GetNewCancellationToken());
+        }
+        public async Task<DistributionGroup> ExpandDistributionGroup(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<DistributionGroup>(Links.expandDistributionGroup, cancellationToken);
         }
 
-        public async Task<GroupContacts> GetGroupContacts()
+        public Task<GroupContacts> GetGroupContacts()
         {
-            return await HttpService.Get<GroupContacts>(Links.groupContacts);
+            return GetGroupContacts(HttpService.GetNewCancellationToken());
+        }
+        public async Task<GroupContacts> GetGroupContacts(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<GroupContacts>(Links.groupContacts, cancellationToken);
         }
 
-        public async Task<GroupMemberships> GetGroupMemberships()
+        public Task<GroupMemberships> GetGroupMemberships()
         {
-            return await HttpService.Get<GroupMemberships>(Links.groupMemberships);
+            return GetGroupMemberships(HttpService.GetNewCancellationToken());
+        }
+        public async Task<GroupMemberships> GetGroupMemberships(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<GroupMemberships>(Links.groupMemberships, cancellationToken);
         }
 
-        public async Task<PresenceSubscription> SubscribeToGroupPresence(int duration = 30)
+        public Task<PresenceSubscription> SubscribeToGroupPresence(int duration = 30)
+        {
+            return SubscribeToGroupPresence(HttpService.GetNewCancellationToken());
+        }
+        public async Task<PresenceSubscription> SubscribeToGroupPresence(CancellationToken cancellationToken, int duration = 30)
         {
             if (duration > 30 && duration < 10)
                 return null;
 
             var uri = Links.subscribeToGroupPresence.Href + "&duration=" + duration;
-            return await HttpService.Post<PresenceSubscription>(uri, null);
+            return await HttpService.Post<PresenceSubscription>(uri, null, cancellationToken);
         }
     }    
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -43,6 +44,11 @@ namespace Microsoft.Skype.UCWA.Models
 
         public async Task AddPhoneAudio(string sipName, string phoneNumber)
         {
+            await AddPhoneAudio(sipName, phoneNumber, HttpService.GetNewCancellationToken());
+        }
+
+        public async Task AddPhoneAudio(string sipName, string phoneNumber, CancellationToken cancellationToken)
+        {
             if (string.IsNullOrEmpty(sipName) && string.IsNullOrEmpty(phoneNumber))
                 return;
             
@@ -53,27 +59,47 @@ namespace Microsoft.Skype.UCWA.Models
                 OperationId = Guid.NewGuid().ToString()
             };
 
-            await HttpService.Post(Links.addPhoneAudio, invitaion);
+            await HttpService.Post(Links.addPhoneAudio, invitaion, cancellationToken);
         }
 
-        public async Task<Conversation> GetConversation()
+        public Task<Conversation> GetConversation()
         {
-            return await HttpService.Get<Conversation>(Links.conversation);
+             return GetConversation(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<Conversation> GetConversation(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Conversation>(Links.conversation, cancellationToken);
         }
 
         public async Task HoldPhoneAudio()
         {
-            await HttpService.Post(Links.holdPhoneAudio, "");
+            await HoldPhoneAudio(HttpService.GetNewCancellationToken());
+        }
+
+        public async Task HoldPhoneAudio(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.holdPhoneAudio, "", cancellationToken);
         }
 
         public async Task ResumePhoneAudio()
         {
-            await HttpService.Post(Links.resumePhoneAudio, "");
+            await ResumePhoneAudio(HttpService.GetNewCancellationToken());
+        }
+
+        public async Task ResumePhoneAudio(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.resumePhoneAudio, "", cancellationToken);
         }
 
         public async Task StopPhoneAudio()
         {
-            await HttpService.Post(Links.stopPhoneAudio, "");
+            await StopPhoneAudio(HttpService.GetNewCancellationToken());
+        }
+
+        public async Task StopPhoneAudio(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.stopPhoneAudio, "", cancellationToken);
         }
     }
 }

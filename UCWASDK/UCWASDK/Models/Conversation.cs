@@ -3,6 +3,7 @@ using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -103,7 +104,11 @@ namespace Microsoft.Skype.UCWA.Models
             internal UCWAHref phoneAudio { get; set; }
         }
 
-        public async Task AddParticipant(string to)
+        public Task AddParticipant(string to)
+        {
+            return AddParticipant(to, HttpService.GetNewCancellationToken());
+        }
+        public async Task AddParticipant(string to, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(to))
                 return;
@@ -112,83 +117,143 @@ namespace Microsoft.Skype.UCWA.Models
             body["to"] = to;
             body["operationid"] = Guid.NewGuid();
 
-            await HttpService.Post(Links.addParticipant, body);
+            await HttpService.Post(Links.addParticipant, body, cancellationToken);
         }
 
-        public async Task<ApplicationSharing> GetApplicationSharing()
+        public Task<ApplicationSharing> GetApplicationSharing()
         {
-            return await HttpService.Get<ApplicationSharing>(Links.applicationSharing);
+            return GetApplicationSharing(HttpService.GetNewCancellationToken());
         }
-
-        public async Task<Attendees> GetAttendees()
+        public async Task<ApplicationSharing> GetApplicationSharing(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<Attendees>(Links.attendees);
+            return await HttpService.Get<ApplicationSharing>(Links.applicationSharing, cancellationToken);
         }
 
-        public async Task<AudioVideo> GetAudioVideo()
+        public Task<Attendees> GetAttendees()
         {
-            return await HttpService.Get<AudioVideo>(Links.audioVideo);
+            return GetAttendees(HttpService.GetNewCancellationToken());
         }
-
-        public async Task<DataCollaboration> GetDataCollaboration()
+        public async Task<Attendees> GetAttendees(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<DataCollaboration>(Links.dataCollaboration);
+            return await HttpService.Get<Attendees>(Links.attendees, cancellationToken);
         }
 
-        public async Task DisableAudienceMessaging()
+        public Task<AudioVideo> GetAudioVideo()
         {
-            await HttpService.Post(Links.disableAudienceMessaging, "");
+            return GetAudioVideo(HttpService.GetNewCancellationToken());
         }
-
-        public async Task DisableAudienceMuteLock()
+        public async Task<AudioVideo> GetAudioVideo(CancellationToken cancellationToken)
         {
-            await HttpService.Post(Links.disableAudienceMuteLock, "");
+            return await HttpService.Get<AudioVideo>(Links.audioVideo, cancellationToken);
         }
 
-        public async Task EnableAudienceMessaging()
+        public Task<DataCollaboration> GetDataCollaboration()
         {
-            await HttpService.Post(Links.enableAudienceMessaging, "");
+            return GetDataCollaboration(HttpService.GetNewCancellationToken());
         }
-
-        public async Task EnableAudienceMuteLock()
+        public async Task<DataCollaboration> GetDataCollaboration(CancellationToken cancellationToken)
         {
-            await HttpService.Post(Links.enableAudienceMuteLock, "");
+            return await HttpService.Get<DataCollaboration>(Links.dataCollaboration, cancellationToken);
         }
 
-        public async Task Delete()
+        public Task DisableAudienceMessaging()
+        {
+            return DisableAudienceMessaging(HttpService.GetNewCancellationToken());
+        }
+        public async Task DisableAudienceMessaging(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.disableAudienceMessaging, "", cancellationToken);
+        }
+
+        public Task DisableAudienceMuteLock()
+        {
+            return DisableAudienceMuteLock(HttpService.GetNewCancellationToken());
+        }
+        public async Task DisableAudienceMuteLock(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.disableAudienceMuteLock, "", cancellationToken);
+        }
+
+        public Task EnableAudienceMessaging()
+        {
+            return EnableAudienceMessaging(HttpService.GetNewCancellationToken());
+        }
+        public async Task EnableAudienceMessaging(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.enableAudienceMessaging, "", cancellationToken);
+        }
+
+        public Task EnableAudienceMuteLock()
+        {
+            return EnableAudienceMuteLock(HttpService.GetNewCancellationToken());
+        }
+        public async Task EnableAudienceMuteLock(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.enableAudienceMuteLock, "", cancellationToken);
+        }
+
+        public Task Delete()
+        {
+            return Delete(HttpService.GetNewCancellationToken());
+        }
+        public async Task Delete(CancellationToken cancellationToken)
         {
             var uri = Self;
-            await HttpService.Delete(uri);
+            await HttpService.Delete(uri, cancellationToken);
         }
 
-        public async Task<Leaders> GetLeaders()
+        public Task<Leaders> GetLeaders()
         {
-            return await HttpService.Get<Leaders>(Links.leaders);
+            return GetLeaders(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Leaders> GetLeaders(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Leaders>(Links.leaders, cancellationToken);
         }
 
-        public async Task<Lobby> GetLobby()
+        public Task<Lobby> GetLobby()
         {
-            return await HttpService.Get<Lobby>(Links.lobby);
+            return GetLobby(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Lobby> GetLobby(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Lobby>(Links.lobby, cancellationToken);
         }
 
-        public async Task<LocalParticipant> GetLocalParticipant()
+        public Task<LocalParticipant> GetLocalParticipant()
         {
-            return await HttpService.Get<LocalParticipant>(Links.localParticipant);
+            return GetLocalParticipant(HttpService.GetNewCancellationToken());
+        }
+        public async Task<LocalParticipant> GetLocalParticipant(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<LocalParticipant>(Links.localParticipant, cancellationToken);
         }
 
-        public async Task<Messaging> GetMessaging()
+        public Task<Messaging> GetMessaging()
         {
-            return await HttpService.Get<Messaging>(Links.messaging);
+            return GetMessaging(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Messaging> GetMessaging(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Messaging>(Links.messaging, cancellationToken);
         }
 
-        public async Task<OnlineMeeting> GetOnlineMeeting()
+        public Task<OnlineMeeting> GetOnlineMeeting()
         {
-            return await HttpService.Get<OnlineMeeting>(Links.onlineMeeting);
+            return GetOnlineMeeting(HttpService.GetNewCancellationToken());
+        }
+        public async Task<OnlineMeeting> GetOnlineMeeting(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<OnlineMeeting>(Links.onlineMeeting, cancellationToken);
         }
 
-        public async Task<PhoneAudio> GetPhoneAudio()
+        public Task<PhoneAudio> GetPhoneAudio()
         {
-            return await HttpService.Get<PhoneAudio>(Links.phoneAudio);
+            return GetPhoneAudio(HttpService.GetNewCancellationToken());
+        }
+        public async Task<PhoneAudio> GetPhoneAudio(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<PhoneAudio>(Links.phoneAudio, cancellationToken);
         }
     }
 }

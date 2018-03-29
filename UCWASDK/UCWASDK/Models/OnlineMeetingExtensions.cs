@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -20,9 +21,13 @@ namespace Microsoft.Skype.UCWA.Models
             internal OnlineMeetingExtension[] meetingExtensions { get; set; }               
         }
 
-        public async Task<OnlineMeetingExtension> Create(OnlineMeetingExtension onlineMeetingExtension)
+        public Task<OnlineMeetingExtension> Create(OnlineMeetingExtension onlineMeetingExtension)
         {
-            return await HttpService.Post<OnlineMeetingExtension>(Self, onlineMeetingExtension);
+            return Create(onlineMeetingExtension, HttpService.GetNewCancellationToken());
+        }
+        public Task<OnlineMeetingExtension> Create(OnlineMeetingExtension onlineMeetingExtension, CancellationToken cancellationToken)
+        {
+            return HttpService.Post<OnlineMeetingExtension>(Self, onlineMeetingExtension, cancellationToken);
         }        
     }
 }

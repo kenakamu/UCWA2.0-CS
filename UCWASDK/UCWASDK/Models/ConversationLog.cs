@@ -2,6 +2,7 @@
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -80,7 +81,11 @@ namespace Microsoft.Skype.UCWA.Models
             internal ConversationLogRecipient[] conversationLogRecipients { get; set; }
         }
         
-        public async Task ContinueMessaging(MessageFormat messageFormat, string message)
+        public Task ContinueMessaging(MessageFormat messageFormat, string message)
+        {
+            return ContinueMessaging(messageFormat, message, HttpService.GetNewCancellationToken());
+        }
+        public async Task ContinueMessaging(MessageFormat messageFormat, string message, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(message))
                 return;
@@ -104,10 +109,14 @@ namespace Microsoft.Skype.UCWA.Models
                 }
             };
 
-            await HttpService.Post(Links.continueMessaging, messagingInvitation);
+            await HttpService.Post(Links.continueMessaging, messagingInvitation, cancellationToken);
         }
 
-        public async Task ContinuePhoneAudio(string phoneNumber)
+        public Task ContinuePhoneAudio(string phoneNumber)
+        {
+            return ContinuePhoneAudio(phoneNumber, HttpService.GetNewCancellationToken());
+        }
+        public async Task ContinuePhoneAudio(string phoneNumber, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(phoneNumber))
                 return;
@@ -118,22 +127,34 @@ namespace Microsoft.Skype.UCWA.Models
                 PhoneNumber = phoneNumber
             };
             
-            await HttpService.Post(Links.continuePhoneAudio, phoneAudioInvitation);
+            await HttpService.Post(Links.continuePhoneAudio, phoneAudioInvitation, cancellationToken);
         }
 
-        public async Task<ConversationLogTranscripts> GetConversationLogTranscripts()
+        public Task<ConversationLogTranscripts> GetConversationLogTranscripts()
         {
-            return await HttpService.Get<ConversationLogTranscripts>(Links.conversationLogTranscripts);
+            return GetConversationLogTranscripts(HttpService.GetNewCancellationToken());
+        }
+        public async Task<ConversationLogTranscripts> GetConversationLogTranscripts(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<ConversationLogTranscripts>(Links.conversationLogTranscripts, cancellationToken);
         }
 
-        public async Task MarkAsRead()
+        public Task MarkAsRead()
         {
-            await HttpService.Post(Links.markAsRead, "");
+            return MarkAsRead(HttpService.GetNewCancellationToken());
+        }
+        public async Task MarkAsRead(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.markAsRead, "", cancellationToken);
         }
 
-        public async Task Delete()
+        public Task Delete()
         {
-            await HttpService.Delete(Self);
+            return Delete(HttpService.GetNewCancellationToken());
+        }
+        public async Task Delete(CancellationToken cancellationToken)
+        {
+            await HttpService.Delete(Self, cancellationToken);
         }
     }
 }

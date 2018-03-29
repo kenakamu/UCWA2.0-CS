@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -31,7 +32,12 @@ namespace Microsoft.Skype.UCWA.Models
             internal Xframe xframe { get; set; }
         }
 
-        public async Task<Application> CreateApplication(string userAgent, string EndpointId, string Culture)
+        public Task<Application> CreateApplication(string userAgent, string EndpointId, string Culture)
+        {
+            return CreateApplication(userAgent, EndpointId, Culture, HttpService.GetNewCancellationToken());
+        }
+
+        public Task<Application> CreateApplication(string userAgent, string EndpointId, string Culture, CancellationToken cancellationToken)
         {
             Application application = new Models.Application()
             {
@@ -39,17 +45,27 @@ namespace Microsoft.Skype.UCWA.Models
                 EndpointId = EndpointId,
                 Culture = Culture
             };
-            return await HttpService.Post<Application>(Links.applications, application);
+            return HttpService.Post<Application>(Links.applications, application, cancellationToken);
         }
 
-        public async Task<Redirect> GetRedirect()
+        public Task<Redirect> GetRedirect()
         {
-            return await HttpService.Get<Redirect>(Links.redirect);
+            return GetRedirect(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<Xframe> GetXframe()
+        public Task<Redirect> GetRedirect(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<Xframe>(Links.xframe);
+            return HttpService.Get<Redirect>(Links.redirect, cancellationToken);
+        }
+
+        public Task<Xframe> GetXframe()
+        {
+            return GetXframe(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<Xframe> GetXframe(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Xframe>(Links.xframe, cancellationToken);
         }
     }
 }

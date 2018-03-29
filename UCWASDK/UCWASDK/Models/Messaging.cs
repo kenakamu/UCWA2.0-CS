@@ -3,6 +3,7 @@ using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -18,7 +19,7 @@ namespace Microsoft.Skype.UCWA.Models
 
         [JsonProperty("state")]
         public string State { get; internal set; }
-        
+
         [JsonProperty("_links")]
         internal InternalLinks Links { get; set; }
 
@@ -31,26 +32,30 @@ namespace Microsoft.Skype.UCWA.Models
             internal UCWAHref self { get; set; }
 
             [JsonProperty("addMessaging")]
-            internal AddMessaging addMessaging { get; set; }           
-     
+            internal AddMessaging addMessaging { get; set; }
+
             [JsonProperty("conversation")]
             internal UCWAHref conversation { get; set; }
-            
+
             [JsonProperty("sendMessage")]
             internal SendMessage sendMessage { get; set; }
             public string SendMessage { get { return sendMessage?.Href; } }
 
             [JsonProperty("setIsTyping")]
             internal SetIsTyping setIsTyping { get; set; }
-     
+
             [JsonProperty("stopMessaging")]
             internal StopMessaging stopMessaging { get; set; }
-     
+
             [JsonProperty("typingParticipants")]
             internal UCWAHref typingParticipants { get; set; }
         }
 
-        public async Task AddMessaging(MessageFormat messageFormat, string message)
+        public Task AddMessaging(MessageFormat messageFormat, string message)
+        {
+            return AddMessaging(messageFormat, message, HttpService.GetNewCancellationToken());
+        }
+        public async Task AddMessaging(MessageFormat messageFormat, string message, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(message))
                 return;
@@ -74,35 +79,55 @@ namespace Microsoft.Skype.UCWA.Models
                 }
             };
 
-            await HttpService.Post(Links.addMessaging, messagingInvitation);
+            await HttpService.Post(Links.addMessaging, messagingInvitation, cancellationToken);
         }
 
-        public async Task<Conversation> GetConversation()
+        public Task<Conversation> GetConversation()
         {
-            return await HttpService.Get<Conversation>(Links.conversation);
+            return GetConversation(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Conversation> GetConversation(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Conversation>(Links.conversation, cancellationToken);
         }
 
-        public async Task SendMessage(string message)
+        public Task SendMessage(string message)
+        {
+            return SendMessage(message, HttpService.GetNewCancellationToken());
+        }
+        public Task SendMessage(string message, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(message))
-                return;
-            
-            await HttpService.Post(Links.SendMessage, message);
+                return Task.FromResult<object>(null);
+
+            return HttpService.Post(Links.SendMessage, message, cancellationToken);
         }
 
-        public async Task StopMessaging()
+        public Task StopMessaging()
         {
-            await HttpService.Post(Links.stopMessaging, "");
+            return StopMessaging(HttpService.GetNewCancellationToken());
+        }
+        public Task StopMessaging(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.stopMessaging, "", cancellationToken);
         }
 
-        public async Task SetIsTyping()
+        public Task SetIsTyping()
         {
-            await HttpService.Post(Links.setIsTyping, "");
+            return SetIsTyping(HttpService.GetNewCancellationToken());
+        }
+        public Task SetIsTyping(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.setIsTyping, "", cancellationToken);
         }
 
-        public async Task<TypingParticipants> GetTypingParticipants()
+        public Task<TypingParticipants> GetTypingParticipants()
         {
-            return await HttpService.Get<TypingParticipants>(Links.typingParticipants);
+            return GetTypingParticipants(HttpService.GetNewCancellationToken());
+        }
+        public Task<TypingParticipants> GetTypingParticipants(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<TypingParticipants>(Links.typingParticipants, cancellationToken);
         }
     }
 }

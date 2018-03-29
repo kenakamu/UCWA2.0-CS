@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 
 namespace Microsoft.Skype.UCWA.Models
 {
@@ -23,14 +24,22 @@ namespace Microsoft.Skype.UCWA.Models
         [JsonProperty("type")]
         public OnlineMeetingExtensionType Type { get; set; }
 
-        public async Task Update()
+        public Task Update()
         {
-            await HttpService.Put(Self, this);
+            return Update(HttpService.GetNewCancellationToken());
+        }
+        public Task Update(CancellationToken cancellationToken)
+        {
+            return HttpService.Put(Self, this, cancellationToken);
         }
 
-        public async Task Delete()
+        public Task Delete()
         {
-            await HttpService.Delete(Self);
+            return Delete(HttpService.GetNewCancellationToken());
+        }
+        public Task Delete(CancellationToken cancellationToken)
+        {
+            return HttpService.Delete(Self, cancellationToken);
         }
     }
 }

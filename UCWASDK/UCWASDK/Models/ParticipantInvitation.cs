@@ -2,6 +2,7 @@
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -62,13 +63,13 @@ namespace Microsoft.Skype.UCWA.Models
 
             [JsonProperty("customContent")]
             internal UCWAHref customContent { get; set; }
-  
+
             [JsonProperty("message")]
-            internal UCWAHref message { get; set; }  
-         
+            internal UCWAHref message { get; set; }
+
             [JsonProperty("cancel")]
             internal Cancel cancel { get; set; }
-  
+
             [JsonProperty("conversation")]
             internal UCWAHref conversation { get; set; }
 
@@ -77,7 +78,7 @@ namespace Microsoft.Skype.UCWA.Models
 
             [JsonProperty("participant")]
             internal UCWAHref participant { get; set; }
-  
+
             [JsonProperty("to")]
             internal UCWAHref to { get; set; }
         }
@@ -91,29 +92,49 @@ namespace Microsoft.Skype.UCWA.Models
             internal From from { get; set; }
         }
 
-        public async Task Cancel()
+        public Task Cancel()
         {
-            await HttpService.Post(Links.cancel, "");
+            return Cancel(HttpService.GetNewCancellationToken());
+        }
+        public Task Cancel(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.cancel, "", cancellationToken);
         }
 
-        public async Task<Conversation> GetConversation()
+        public Task<Conversation> GetConversation()
         {
-            return await HttpService.Get<Conversation>(Links.conversation);
+            return GetConversation(HttpService.GetNewCancellationToken());
+        }
+        public Task<Conversation> GetConversation(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Conversation>(Links.conversation, cancellationToken);
         }
 
-        public async Task<From> GetFrom()
+        public Task<From> GetFrom()
         {
-            return await HttpService.Get<From>(Links.from);
+            return GetFrom(HttpService.GetNewCancellationToken());
+        }
+        public Task<From> GetFrom(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<From>(Links.from, cancellationToken);
         }
 
-        public async Task<Participant> GetParticipant()
+        public Task<Participant> GetParticipant()
         {
-            return await HttpService.Get<Participant>(Links.participant);
+            return GetParticipant(HttpService.GetNewCancellationToken());
+        }
+        public Task<Participant> GetParticipant(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Participant>(Links.participant, cancellationToken);
         }
 
-        public async Task<To> GetTo()
+        public Task<To> GetTo()
         {
-            return await HttpService.Get<To>(Links.to);
+            return GetTo(HttpService.GetNewCancellationToken());
+        }
+        public Task<To> GetTo(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<To>(Links.to, cancellationToken);
         }
     }
 }

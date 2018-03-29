@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -23,59 +24,87 @@ namespace Microsoft.Skype.UCWA.Models
 
             [JsonProperty("myAssignedOnlineMeeting")]
             internal UCWAHref myAssignedOnlineMeeting { get; set; }
-      
+
             [JsonProperty("myOnlineMeetings")]
             internal UCWAHref myOnlineMeetings { get; set; }
-      
+
             [JsonProperty("onlineMeetingDefaultValues")]
             internal UCWAHref onlineMeetingDefaultValues { get; set; }
-      
+
             [JsonProperty("onlineMeetingEligibleValues")]
             internal UCWAHref onlineMeetingEligibleValues { get; set; }
-      
+
             [JsonProperty("onlineMeetingInvitationCustomization")]
             internal UCWAHref onlineMeetingInvitationCustomization { get; set; }
-      
+
             [JsonProperty("onlineMeetingPolicies")]
             internal UCWAHref onlineMeetingPolicies { get; set; }
-      
+
             [JsonProperty("phoneDialInInformation")]
             internal UCWAHref phoneDialInInformation { get; set; }
         }
 
-        public async Task<MyAssignedOnlineMeeting> GetMyAssignedOnlineMeeting()
+        public Task<MyAssignedOnlineMeeting> GetMyAssignedOnlineMeeting()
         {
-            return await HttpService.Get<MyAssignedOnlineMeeting>(Links.myAssignedOnlineMeeting);
+            return GetMyAssignedOnlineMeeting(HttpService.GetNewCancellationToken());
+        }
+        public Task<MyAssignedOnlineMeeting> GetMyAssignedOnlineMeeting(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<MyAssignedOnlineMeeting>(Links.myAssignedOnlineMeeting, cancellationToken);
         }
 
-        public async Task<MyOnlineMeetings> GetMyOnlineMeetings()
+        public Task<MyOnlineMeetings> GetMyOnlineMeetings()
         {
-            return await HttpService.Get<MyOnlineMeetings>(Links.myOnlineMeetings);
+            return GetMyOnlineMeetings(HttpService.GetNewCancellationToken());
+        }
+        public Task<MyOnlineMeetings> GetMyOnlineMeetings(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<MyOnlineMeetings>(Links.myOnlineMeetings, cancellationToken);
         }
 
-        public async Task<OnlineMeetingDefaultValues> GetOnlineMeetingDefaultValues()
+        public Task<OnlineMeetingDefaultValues> GetOnlineMeetingDefaultValues()
         {
-            return await HttpService.Get<OnlineMeetingDefaultValues>(Links.onlineMeetingDefaultValues);
+            return GetOnlineMeetingDefaultValues(HttpService.GetNewCancellationToken());
+        }
+        public Task<OnlineMeetingDefaultValues> GetOnlineMeetingDefaultValues(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<OnlineMeetingDefaultValues>(Links.onlineMeetingDefaultValues, cancellationToken);
         }
 
-        public async Task<OnlineMeetingEligibleValues> GetOnlineMeetingEligibleValues()
+        public Task<OnlineMeetingEligibleValues> GetOnlineMeetingEligibleValues()
         {
-            return await HttpService.Get<OnlineMeetingEligibleValues>(Links.onlineMeetingEligibleValues);
+            return GetOnlineMeetingEligibleValues(HttpService.GetNewCancellationToken());
+        }
+        public Task<OnlineMeetingEligibleValues> GetOnlineMeetingEligibleValues(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<OnlineMeetingEligibleValues>(Links.onlineMeetingEligibleValues, cancellationToken);
         }
 
-        public async Task<OnlineMeetingInvitationCustomization> GetOnlineMeetingInvitationCustomization()
+        public Task<OnlineMeetingInvitationCustomization> GetOnlineMeetingInvitationCustomization()
         {
-            return await HttpService.Get<OnlineMeetingInvitationCustomization>(Links.onlineMeetingInvitationCustomization);
+            return GetOnlineMeetingInvitationCustomization(HttpService.GetNewCancellationToken());
+        }
+        public Task<OnlineMeetingInvitationCustomization> GetOnlineMeetingInvitationCustomization(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<OnlineMeetingInvitationCustomization>(Links.onlineMeetingInvitationCustomization, cancellationToken);
         }
 
-        public async Task<OnlineMeetingPolicies> GetOnlineMeetingPolicies()
+        public Task<OnlineMeetingPolicies> GetOnlineMeetingPolicies()
         {
-            return await HttpService.Get<OnlineMeetingPolicies>(Links.onlineMeetingPolicies);
+            return GetOnlineMeetingPolicies(HttpService.GetNewCancellationToken());
+        }
+        public Task<OnlineMeetingPolicies> GetOnlineMeetingPolicies(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<OnlineMeetingPolicies>(Links.onlineMeetingPolicies, cancellationToken);
         }
 
-        public async Task<PhoneDialInInformation> GetPhoneDialInInformation()
+        public Task<PhoneDialInInformation> GetPhoneDialInInformation()
         {
-            return await HttpService.Get<PhoneDialInInformation>(Links.phoneDialInInformation);
+            return GetPhoneDialInInformation(HttpService.GetNewCancellationToken());
+        }
+        public Task<PhoneDialInInformation> GetPhoneDialInInformation(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<PhoneDialInInformation>(Links.phoneDialInInformation, cancellationToken);
         }
     }
 }

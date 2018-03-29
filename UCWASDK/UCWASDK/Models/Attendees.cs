@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -25,10 +26,13 @@ namespace Microsoft.Skype.UCWA.Models
             [JsonProperty("participant")]
             internal UCWAHref[] participant { get; set; }
         }
-
-        public async Task<List<Participant>> GetParticipants()
+        public Task<List<Participant>> GetParticipants()
         {
-            return await HttpService.GetList<Participant>(Links.participant);
+            return GetParticipants(HttpService.GetNewCancellationToken());
+        }
+        public async Task<List<Participant>> GetParticipants(CancellationToken cancellationToken)
+        {
+            return await HttpService.GetList<Participant>(Links.participant, cancellationToken);
         }
     }
 }

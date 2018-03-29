@@ -1,6 +1,7 @@
 ﻿using Microsoft.Skype.UCWA.Enums;
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -38,19 +39,27 @@ namespace Microsoft.Skype.UCWA.Models
 
             [JsonProperty("myAssignedOnlineMeeting")]
             internal UCWAHref myAssignedOnlineMeeting { get; set; }
-            
+
             [JsonProperty("myOnlineMeetings")]
             internal UCWAHref myOnlineMeetings { get; set; }
-         }
-
-        public async Task<MyAssignedOnlineMeeting> GetMyAssignedOnlineMeeting()
-        {
-            return await HttpService.Get<MyAssignedOnlineMeeting>(Links.myAssignedOnlineMeeting);
         }
 
-        public async Task<MyOnlineMeetings> GetMyOnlineMeetings()
+        public Task<MyAssignedOnlineMeeting> GetMyAssignedOnlineMeeting()
         {
-            return await HttpService.Get<MyOnlineMeetings>(Links.myOnlineMeetings);
+            return GetMyAssignedOnlineMeeting(HttpService.GetNewCancellationToken());
+        }
+        public Task<MyAssignedOnlineMeeting> GetMyAssignedOnlineMeeting(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<MyAssignedOnlineMeeting>(Links.myAssignedOnlineMeeting, cancellationToken);
+        }
+
+        public Task<MyOnlineMeetings> GetMyOnlineMeetings()
+        {
+            return GetMyOnlineMeetings(HttpService.GetNewCancellationToken());
+        }
+        public Task<MyOnlineMeetings> GetMyOnlineMeetings(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<MyOnlineMeetings>(Links.myOnlineMeetings, cancellationToken);
         }
     }
 }

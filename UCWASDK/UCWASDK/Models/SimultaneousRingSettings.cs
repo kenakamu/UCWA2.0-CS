@@ -2,6 +2,7 @@
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -41,25 +42,45 @@ namespace Microsoft.Skype.UCWA.Models
             [JsonProperty("simultaneousRingToTeam")]
             internal SimultaneousRingToTeam simultaneousRingToTeam { get; set; }
         }
-                
-        public async Task<Contact> GetContact()
+
+        public Task<Contact> GetContact()
         {
-            return await HttpService.Get<Contact>(Links.contact);
+            return GetContact(HttpService.GetNewCancellationToken());
         }
 
-        public async Task SimultaneousRingToContact()
+        public Task<Contact> GetContact(CancellationToken cancellationToken)
         {
-            await HttpService.Post(Links.simultaneousRingToContact, this);
+            return HttpService.Get<Contact>(Links.contact, cancellationToken);
         }
 
-        public async Task SimultaneousRingToDelegates()
+        public Task SimultaneousRingToContact()
         {
-            await HttpService.Post(Links.simultaneousRingToDelegates, this);
+            return SimultaneousRingToContact(HttpService.GetNewCancellationToken());
         }
 
-        public async Task SimultaneousRingToTeam(int? ringDelay)
+        public Task SimultaneousRingToContact(CancellationToken cancellationToken)
         {
-            await HttpService.Post(Links.simultaneousRingToTeam, this);
+            return HttpService.Post(Links.simultaneousRingToContact, this, cancellationToken);
+        }
+
+        public Task SimultaneousRingToDelegates()
+        {
+            return SimultaneousRingToDelegates(HttpService.GetNewCancellationToken());
+        }
+
+        public Task SimultaneousRingToDelegates(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.simultaneousRingToDelegates, this, cancellationToken);
+        }
+
+        public Task SimultaneousRingToTeam(int? ringDelay)
+        {
+            return SimultaneousRingToTeam(ringDelay, HttpService.GetNewCancellationToken());
+        }
+
+        public Task SimultaneousRingToTeam(int? ringDelay, CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.simultaneousRingToTeam, this, cancellationToken);
         }
     }
 }

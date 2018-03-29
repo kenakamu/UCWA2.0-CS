@@ -2,6 +2,7 @@
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -96,84 +97,163 @@ namespace Microsoft.Skype.UCWA.Models
             internal Reject reject { get; set; }
         }
 
-        public async Task Admit()
+        public Task Admit()
         {
-            await HttpService.Post(Links.admit, "");
+            return Admit(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<Contact> GetContact()
+        public Task Admit(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<Contact>(Links.contact);
+            return HttpService.Post(Links.admit, "", cancellationToken);
         }
 
-        public async Task<byte[]> GetContactPhoto()
+        public Task<Contact> GetContact()
         {
-            return await HttpService.GetBinary(Links.contactPhoto);
+            return GetContact(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<ContactPresence> GetContactPresence()
+        public Task<Contact> GetContact(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<ContactPresence>(Links.contactPresence);
+            return HttpService.Get<Contact>(Links.contact, cancellationToken);
         }
 
-        public async Task<Conversation> GetConversation()
+        public Task<byte[]> GetContactPhoto()
         {
-            return await HttpService.Get<Conversation>(Links.conversation);
+            return GetContactPhoto(HttpService.GetNewCancellationToken());
         }
 
-        public async Task Demote()
+        public Task<byte[]> GetContactPhoto(CancellationToken cancellationToken)
         {
-            await HttpService.Post(Links.demote, "");
-
-        }
-        public async Task Eject()
-        {
-            await HttpService.Post(Links.eject, "");
+            return HttpService.GetBinary(Links.contactPhoto, cancellationToken);
         }
 
-        public async Task<Me> GetMe()
+        public Task<ContactPresence> GetContactPresence()
         {
-            return await HttpService.Get<Me>(Links.me);
+            return GetContactPresence(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<ParticipantApplicationSharing> GetParticipantApplicationSharing()
+        public Task<ContactPresence> GetContactPresence(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<ParticipantApplicationSharing>(Links.participantApplicationSharing);
+            return HttpService.Get<ContactPresence>(Links.contactPresence, cancellationToken);
         }
 
-        public async Task<ParticipantAudio> GetParticipantAudio()
+        public Task<Conversation> GetConversation()
         {
-            return await HttpService.Get<ParticipantAudio>(Links.participantAudio);
+            return GetConversation(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<ParticipantDataCollaboration> GetParticipantDataCollaboration()
+        public Task<Conversation> GetConversation(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<ParticipantDataCollaboration>(Links.participantDataCollaboration);
+            return HttpService.Get<Conversation>(Links.conversation, cancellationToken);
         }
 
-        public async Task<ParticipantMessaging> GetParticipantMessaging()
+        public Task Demote()
         {
-            return await HttpService.Get<ParticipantMessaging>(Links.participantMessaging);
+            return Demote(HttpService.GetNewCancellationToken());
         }
 
-        public async Task<ParticipantPanoramicVideo> GetParticipantPanoramicVideo()
+        public Task Demote(CancellationToken cancellationToken)
         {
-            return await HttpService.Get<ParticipantPanoramicVideo>(Links.participantPanoramicVideo);
+            return  HttpService.Post(Links.demote, "", cancellationToken);
         }
 
-        public async Task<ParticipantVideo> GetParticipantVideo()
+        public Task Eject()
         {
-            return await HttpService.Get<ParticipantVideo>(Links.participantVideo);
+            return Eject(HttpService.GetNewCancellationToken());
         }
 
-        public async Task Promote()
+        public Task Eject(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.eject, "", cancellationToken);
+        }
+
+        public Task<Me> GetMe()
+        {
+            return GetMe(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<Me> GetMe(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<Me>(Links.me, cancellationToken);
+        }
+
+        public Task<ParticipantApplicationSharing> GetParticipantApplicationSharing()
+        {
+            return GetParticipantApplicationSharing(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<ParticipantApplicationSharing> GetParticipantApplicationSharing(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<ParticipantApplicationSharing>(Links.participantApplicationSharing, cancellationToken);
+        }
+
+        public Task<ParticipantAudio> GetParticipantAudio()
+        {
+            return GetParticipantAudio(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<ParticipantAudio> GetParticipantAudio(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<ParticipantAudio>(Links.participantAudio, cancellationToken);
+        }
+
+        public Task<ParticipantDataCollaboration> GetParticipantDataCollaboration()
+        {
+            return GetParticipantDataCollaboration(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<ParticipantDataCollaboration> GetParticipantDataCollaboration(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<ParticipantDataCollaboration>(Links.participantDataCollaboration, cancellationToken);
+        }
+
+        public Task<ParticipantMessaging> GetParticipantMessaging(){
+            return GetParticipantMessaging(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<ParticipantMessaging> GetParticipantMessaging(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<ParticipantMessaging>(Links.participantMessaging, cancellationToken);
+        }
+
+        public Task<ParticipantPanoramicVideo> GetParticipantPanoramicVideo()
+        {
+            return GetParticipantPanoramicVideo(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<ParticipantPanoramicVideo> GetParticipantPanoramicVideo(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<ParticipantPanoramicVideo>(Links.participantPanoramicVideo, cancellationToken);
+        }
+
+        public Task<ParticipantVideo> GetParticipantVideo()
+        {
+            return GetParticipantVideo(HttpService.GetNewCancellationToken());
+        }
+
+        public Task<ParticipantVideo> GetParticipantVideo(CancellationToken cancellationToken)
+        {
+            return HttpService.Get<ParticipantVideo>(Links.participantVideo, cancellationToken);
+        }
+
+        public Task Promote()
+        {
+            return Promote(HttpService.GetNewCancellationToken());
+        }
+
+        public Task Promote(CancellationToken cancellationToken)
         { 
-            await HttpService.Post(Links.promote, "");
+            return HttpService.Post(Links.promote, "", cancellationToken);
         }
 
-        public async Task Reject()
+        public Task Reject()
         {
-            await HttpService.Post(Links.reject, "");
+            return Reject(HttpService.GetNewCancellationToken());
+        }
+
+        public Task Reject(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.reject, "", cancellationToken);
         }
     }
 }

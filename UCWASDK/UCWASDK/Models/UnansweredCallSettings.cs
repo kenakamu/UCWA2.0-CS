@@ -2,6 +2,7 @@
 using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -42,24 +43,44 @@ namespace Microsoft.Skype.UCWA.Models
             internal UnansweredCallToVoicemail unansweredCallToVoicemail { get; set; }
         }
 
-        public async Task<Contact> GetContact()
+        public Task<Contact> GetContact()
         {
-            return await HttpService.Get<Contact>(Links.contact);
+            return GetContact(HttpService.GetNewCancellationToken());
         }
 
-        public async Task ResetUnansweredCallSettings()
+        public Task<Contact> GetContact(CancellationToken cancellationToken)
         {
-            await HttpService.Post(Links.resetUnansweredCallSettings, "");
+            return HttpService.Get<Contact>(Links.contact, cancellationToken);
         }
 
-        public async Task UnansweredCallToContact()
+        public Task ResetUnansweredCallSettings()
+        {
+            return ResetUnansweredCallSettings(HttpService.GetNewCancellationToken());
+        }
+
+        public async Task ResetUnansweredCallSettings(CancellationToken cancellationToken)
+        {
+            await HttpService.Post(Links.resetUnansweredCallSettings, "", cancellationToken);
+        }
+
+        public Task UnansweredCallToContact()
+        {
+            return UnansweredCallToContact(HttpService.GetNewCancellationToken());
+        }
+
+        public Task UnansweredCallToContact(CancellationToken cancellationToken)
         { 
-            await HttpService.Post(Links.unansweredCallToContact, this);
+            return HttpService.Post(Links.unansweredCallToContact, this, cancellationToken);
         }
 
-        public async Task UnansweredCallToVoicemail()
+        public Task UnansweredCallToVoicemail()
         {
-            await HttpService.Post(Links.unansweredCallToVoicemail, this);
+            return UnansweredCallToVoicemail(HttpService.GetNewCancellationToken());
+        }
+
+        public Task UnansweredCallToVoicemail(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.unansweredCallToVoicemail, this, cancellationToken);
         }
     }
 }

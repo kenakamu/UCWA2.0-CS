@@ -2,6 +2,7 @@
 using Microsoft.Skype.UCWA.Enums;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.Skype.UCWA.Models
 {
@@ -13,7 +14,7 @@ namespace Microsoft.Skype.UCWA.Models
     {
         [JsonProperty("state")]
         public SubscriptionState State { get; internal set; }
-        
+
         [JsonProperty("_links")]
         internal InternalLinks Links { get; set; }
 
@@ -32,18 +33,26 @@ namespace Microsoft.Skype.UCWA.Models
             internal StopSubscriptionToContactsAndGroups stopSubscriptionToContactsAndGroups { get; set; }
         }
 
-        public async Task StartOrRefreshSubscriptionToContactsAndGroups(int duration)
+        public Task StartOrRefreshSubscriptionToContactsAndGroups(int duration)
+        {
+            return StartOrRefreshSubscriptionToContactsAndGroups(duration, HttpService.GetNewCancellationToken());
+        }
+        public Task StartOrRefreshSubscriptionToContactsAndGroups(int duration, CancellationToken cancellationToken)
         {
             if (duration > 60 && duration < 10)
-                return;
+                return Task.FromResult<object>(null);
 
             var uri = Links.startOrRefreshSubscriptionToContactsAndGroups.Href + "?duration=" + duration;
-            await HttpService.Post(uri, "");
+            return HttpService.Post(uri, "", cancellationToken);
         }
 
-        public async Task StopSubscriptionToContactsAndGroups()
+        public Task StopSubscriptionToContactsAndGroups()
         {
-            await HttpService.Post(Links.stopSubscriptionToContactsAndGroups, "");
+            return StopSubscriptionToContactsAndGroups(HttpService.GetNewCancellationToken());
+        }
+        public Task StopSubscriptionToContactsAndGroups(CancellationToken cancellationToken)
+        {
+            return HttpService.Post(Links.stopSubscriptionToContactsAndGroups, "", cancellationToken);
         }
     }
 }

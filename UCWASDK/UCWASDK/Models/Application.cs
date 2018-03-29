@@ -1,5 +1,6 @@
 ﻿using Microsoft.Skype.UCWA.Services;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Skype.UCWA.Models
@@ -75,19 +76,30 @@ namespace Microsoft.Skype.UCWA.Models
             internal OnlineMeetings onlineMeetings { get; set; }            
         }
 
-        public async Task<Policies> GetPolicies()
+        public Task<Policies> GetPolicies()
         {
-            return await HttpService.Get<Policies>(Links.policies);
+            return GetPolicies(HttpService.GetNewCancellationToken());
+        }
+        public async Task<Policies> GetPolicies(CancellationToken cancellationToken)
+        {
+            return await HttpService.Get<Policies>(Links.policies, cancellationToken);
         }
 
         public async Task<Application>Get()
         {
-            return await HttpService.Get<Application>(Self);
+            return await HttpService.Get<Application>(Self, HttpService.GetNewCancellationToken());
         }
-
-        public async Task Delete()
+        public async Task<Application> Get(CancellationToken cancellationToken)
         {
-            await HttpService.Delete(Self);
+            return await HttpService.Get<Application>(Self, cancellationToken);
+        }
+        public Task Delete()
+        {
+            return Delete(HttpService.GetNewCancellationToken());
+        }
+        public async Task Delete(CancellationToken cancellationToken)
+        {
+            await HttpService.Delete(Self, cancellationToken);
         }
     }
 }

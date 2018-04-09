@@ -164,9 +164,11 @@ namespace Microsoft.Skype.UCWA.Services
         {
             await ExecuteHttpCallAndRetry((token) => PutInternal(uri, body, token, version, anonymous), cancellationToken);
         }
-        private static readonly CancellationTokenSource cts = new CancellationTokenSource();
+        private static CancellationTokenSource cts = new CancellationTokenSource();
         static internal CancellationToken GetNewCancellationToken()
         {
+            if (cts == null)
+                cts = new CancellationTokenSource();
             return cts.Token;
         }
         [Obsolete]
@@ -206,7 +208,8 @@ namespace Microsoft.Skype.UCWA.Services
         {
             foreach (var client in clientPool.Values)
                 client.Dispose();
-            cts.Dispose();
+            cts?.Dispose();
+            cts = null;
             clientPool.Clear();
             _anonymousHttpClient?.Dispose();
             _anonymousHttpClient = null;

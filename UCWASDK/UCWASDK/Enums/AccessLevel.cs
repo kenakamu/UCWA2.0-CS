@@ -6,6 +6,10 @@
     public enum AccessLevel
     {
         /// <summary>
+        /// Only the participants from the same company are admitted into the online meeting. All other participants are placed in the online meeting lobby.
+        /// </summary>
+        SameEnterprise,
+        /// <summary>
         /// Everyone is admitted into the online meeting.
         /// </summary>
         Everyone,
@@ -20,10 +24,6 @@
         /// <summary>
         /// Not initialized.
         /// </summary>
-        None,
-        /// <summary>
-        /// Only the participants from the same company are admitted into the online meeting. All other participants are placed in the online meeting lobby.
-        /// </summary>
-        SameEnterprise
+        None
     }
 }

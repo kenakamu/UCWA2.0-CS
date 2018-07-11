@@ -230,7 +230,7 @@ namespace Microsoft.Skype.UCWA.Services
 
             if (body is UCWAModelBase)
             {
-                JsonSerializer serializer = new JsonSerializer() { DefaultValueHandling = DefaultValueHandling.Ignore };
+                JsonSerializer serializer = new JsonSerializer();
                 serializer.Converters.Add(new StringEnumConverter());
                 JObject jobject = JObject.FromObject(body, serializer);
                 if (!(body is MessagingInvitation))
@@ -262,7 +262,7 @@ namespace Microsoft.Skype.UCWA.Services
             uri = EnsureUriContainsHttp(uri);
 
             var client = await GetClient(uri, cancellationToken, version, anonymous);
-            JsonSerializer serializer = new JsonSerializer() { DefaultValueHandling = DefaultValueHandling.Ignore };
+            JsonSerializer serializer = new JsonSerializer();
             serializer.Converters.Add(new StringEnumConverter());
             JObject jobject = JObject.FromObject(body, serializer);
             jobject["_links"]?.Parent?.Remove();

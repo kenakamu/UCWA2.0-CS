@@ -166,7 +166,7 @@ namespace UCWAUWP.ViewModels
             location = await client.Me.GetLocation();
             note = (await client.Me.GetNote());
             Memo = note.Message;
-            presence = await client.Me.GetPresence();
+            presence = await client.Me.GetPresencs();
             Status = presence.Availability.ToString();
 
             foreach(var group in (await client.People.GetMyGroups()).Groups)
@@ -199,7 +199,7 @@ namespace UCWAUWP.ViewModels
             }
             
             await presence.Update();
-            presence = await client.Me.GetPresence();
+            presence = await client.Me.GetPresencs();
             Status = presence.Availability.ToString();
         }
 

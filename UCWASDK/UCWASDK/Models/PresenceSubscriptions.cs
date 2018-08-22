@@ -39,7 +39,7 @@ namespace Microsoft.Skype.UCWA.Models
                 return null;
             
             JObject body = new JObject();
-            body["duration"] = 30;
+            body["duration"] = duration;
             body["uris"] = new JArray(uris);
             return await HttpService.Post<PresenceSubscription>(Self, body, cancellationToken);
         }

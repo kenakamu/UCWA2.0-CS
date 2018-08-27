@@ -60,6 +60,17 @@ namespace Microsoft.Skype.UCWA.Models
             return HttpService.Get<Memberships>(Links.memberships, cancellationToken);
         }
 
+        public async Task<PresenceSubscription> Renew(int duration = 30)
+        {
+           return await Renew(HttpService.GetNewCancellationToken());
+        }
+
+        public async Task<PresenceSubscription> Renew(CancellationToken cancellationToken, int duration = 30)
+        {
+           var uri = Self + $"?duration={duration}";
+           return await HttpService.Post<PresenceSubscription>(uri, null, cancellationToken);
+        }
+
         public async Task Delete()
         {
             await Delete(HttpService.GetNewCancellationToken());

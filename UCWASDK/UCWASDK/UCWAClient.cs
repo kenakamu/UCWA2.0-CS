@@ -1842,7 +1842,11 @@ namespace Microsoft.Skype.UCWA
                     await HandleDistributionGroupAddedEvent(people, cancellationToken);
                     break;
                 case "presenceSubscription":
-                    PresenceSubscriptionAdded?.Invoke(people.Embedded.PresenceSubscription);
+                    if (PresenceSubscriptionAdded != null)
+                    {
+                       var presenceSubscription = people.Embedded?.PresenceSubscription ?? await httpService.Get<PresenceSubscription>(people.Link.Href, cancellationToken);
+                       PresenceSubscriptionAdded.Invoke(presenceSubscription);
+                    }
                     break;
                 case "defaultGroup":
                 case "pinnedGroup":

@@ -16,12 +16,12 @@ namespace Microsoft.Skype.UCWA.Models
         internal InternalEmbedded Embedded { get; set; }
 
         [JsonIgnore]
-        public PresenceSubscriptionMembership PresenceSubscriptionMembership { get { return Embedded.presenceSubscriptionMembership; } }
+        public PresenceSubscriptionMembership[] PresenceSubscriptionMembership { get { return Embedded.presenceSubscriptionMembership; } }
 
         internal class InternalEmbedded
         {
             [JsonProperty("presenceSubscriptionMembership")]
-            internal PresenceSubscriptionMembership presenceSubscriptionMembership { get; set; }               
+            internal PresenceSubscriptionMembership[] presenceSubscriptionMembership { get; set; }
         }        
 
         public Task<PresenceSubscriptionMemberships> Update(string[] contactUris)

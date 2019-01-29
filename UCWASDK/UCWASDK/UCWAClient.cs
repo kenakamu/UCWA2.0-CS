@@ -1844,7 +1844,7 @@ namespace Microsoft.Skype.UCWA
                 case "presenceSubscription":
                     if (PresenceSubscriptionAdded != null)
                     {
-                       var presenceSubscription = people.Embedded?.PresenceSubscription ?? await httpService.Get<PresenceSubscription>(people.Link.Href, cancellationToken);
+                       var presenceSubscription = people.Embedded?.PresenceSubscription ?? await HttpService.Get<PresenceSubscription>(people.Link.Href, cancellationToken);
                        PresenceSubscriptionAdded.Invoke(presenceSubscription);
                     }
                     break;
